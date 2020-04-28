@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon -r dotenv/config app.js"
   },
   "eslintConfig": {
     "extends": "@trevorblades"
@@ -9,6 +9,7 @@
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
+    "dotenv": "^8.2.0",
     "nodemon": "^2.0.3"
   }
 }

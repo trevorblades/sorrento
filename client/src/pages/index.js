@@ -1,28 +1,20 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import io from 'socket.io-client';
+import useEffectOnce from 'react-use/lib/useEffectOnce';
 
 export default function Index() {
-  const {current: socket} = useRef(io('http://localhost:4000'));
+  const {current: socket} = useRef(io(process.env.GATSBY_API_URL));
   const [customers, setCustomers] = useState([]);
 
-  useEffect(() => {
+  useEffectOnce(() => {
     socket.open();
-    socket.on('data', data => {
-      setCustomers(data.customers);
-    });
-    return () => {
-      socket.close();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    socket.on('data', data => setCustomers(data.customers));
+    return () => socket.close();
+  });
 
   function handleSubmit(e) {
     e.preventDefault();
-    console.log(e.target.name.value);
-    socket.emit('name', {
-      name: e.target.name.value
-    });
-    // TODO: add name to waitlist
+    socket.emit('add', {name: e.target.name.value});
   }
 
   return (
@@ -35,7 +27,7 @@ export default function Index() {
       </ul>
       <button>Next customer</button>
       <form onSubmit={handleSubmit}>
-        <input type="text" name="name" />
+        <input required type="text" name="name" />
         <button type="submit">Add Customer</button>
       </form>
     </div>
