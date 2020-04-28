@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "gatsby develop",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "eslintConfig": {
+    "extends": "@trevorblades/eslint-config/react"
+  },
+  "dependencies": {
+    "gatsby": "^2.21.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  }
+}
