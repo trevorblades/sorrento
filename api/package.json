@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "eslintConfig": {
+    "extends": "@trevorblades"
+  },
+  "dependencies": {
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  }
+}
