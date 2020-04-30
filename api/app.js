@@ -5,7 +5,7 @@ const customers = ['Customer B', 'Customer C', 'Customer D'];
 io.on('connection', socket => {
   socket.emit('data', {customers});
 
-  socket.on('add', data => {
+  socket.on('name', data => {
     customers.push(data.name);
     io.emit('data', {customers});
   });

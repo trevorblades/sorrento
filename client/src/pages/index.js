@@ -14,7 +14,7 @@ export default function Index() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    socket.emit('add', {name: e.target.name.value});
+    socket.emit('name', {name: e.target.name.value});
   }
 
   return (
