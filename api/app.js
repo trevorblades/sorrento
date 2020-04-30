@@ -14,4 +14,12 @@ io.on('connection', socket => {
       });
     });
   });
+
+  socket.on('next', () => {
+    client.lpop('test', function() {
+      client.lrange(['test', 0, -1], function(err, res) {
+        io.emit('data', {customers: res});
+      });
+    });
+  });
 });
