@@ -6,6 +6,7 @@
     "extends": "@trevorblades"
   },
   "dependencies": {
+    "redis": "^3.0.2",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
