@@ -12,11 +12,6 @@ export default function Index() {
     return () => socket.close();
   });
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    socket.emit('name', {name: e.target.name.value});
-  }
-
   function handleNextClick() {
     socket.emit('next');
   }
@@ -24,10 +19,6 @@ export default function Index() {
   return (
     <div>
       <h1>Sorrento</h1>
-      <form onSubmit={handleSubmit}>
-        <input required type="text" name="name" />
-        <button type="submit">Add Customer</button>
-      </form>
       <button onClick={handleNextClick}>Next customer</button>
       <ul>
         {customers.map((customer, index) => (
