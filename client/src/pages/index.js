@@ -13,17 +13,30 @@ export default function Index() {
   });
 
   function handleNextClick() {
-    socket.emit('next');
+    socket.emit('serve', {id: waitingCustomers[0].id});
   }
+
+  const waitingCustomers = customers.filter(customer => customer.waiting);
 
   return (
     <div>
       <h1>Sorrento</h1>
-      <button onClick={handleNextClick}>Next customer</button>
+      <button disabled={!waitingCustomers.length} onClick={handleNextClick}>
+        Next customer
+      </button>
+      <h3>Waiting:</h3>
       <ul>
-        {customers.map((customer, index) => (
-          <li key={index}>{customer}</li>
+        {waitingCustomers.map(customer => (
+          <li key={customer.id}>{customer.name}</li>
         ))}
+      </ul>
+      <h3>Served:</h3>
+      <ul>
+        {customers
+          .filter(customer => !customer.waiting)
+          .map(customer => (
+            <li key={customer.id}>{customer.name}</li>
+          ))}
       </ul>
     </div>
   );
