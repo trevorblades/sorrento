@@ -34,6 +34,7 @@ export default function Index() {
       <ul>
         {customers
           .filter(customer => !customer.waiting)
+          .reverse()
           .map(customer => (
             <li key={customer.id}>{customer.name}</li>
           ))}

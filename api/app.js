@@ -2,6 +2,10 @@ const app = require('express')();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const {MessagingResponse} = require('twilio').twiml;
+const client = require('twilio')(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 const bodyParser = require('body-parser');
 const knex = require('knex');
 
@@ -42,9 +46,24 @@ app.post('/sms', async (req, res) => {
 
 io.on('connection', async socket => {
   socket.on('serve', async data => {
+    const customer = await db('customers')
+      .where('id', data.id)
+      .first();
+
+    const message = await client.messages.create({
+      body:
+        'Your barber is ready to serve you!  Please head over to Sorrento to meet your barber',
+      from: '+16043308137',
+      to: customer.phone
+    });
+
     await db('customers')
       .where('id', data.id)
-      .update('waiting', false);
+      .update({
+        waiting: false,
+        receipt: message.sid
+      });
+
     const customers = await db('customers');
     io.emit('data', {customers});
   });
