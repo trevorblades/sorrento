@@ -1,15 +1,9 @@
 const app = require('express')();
-const server = require('http').Server(app);
+const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const {MessagingResponse} = require('twilio').twiml;
-const client = require('twilio')(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+const twilio = require('twilio');
 const bodyParser = require('body-parser');
 const knex = require('knex');
-
-server.listen(process.env.PORT);
 
 const AVG_HAIRCUT_DURATION = 40;
 
@@ -18,10 +12,15 @@ const db = knex({
   connection: 'postgres://localhost/sorrento'
 });
 
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
 app.use(bodyParser.urlencoded({extended: false}));
 
 app.post('/sms', async (req, res) => {
-  const twiml = new MessagingResponse();
+  const twiml = new twilio.twiml.MessagingResponse();
 
   await db('customers').insert({
     name: req.body.Body,
@@ -31,10 +30,10 @@ app.post('/sms', async (req, res) => {
   const customers = await db('customers');
   const peopleAhead = customers.length - 1;
   // TODO: factor in # of barbers to avg haircut duration
+  const waitTime = peopleAhead * AVG_HAIRCUT_DURATION;
 
   twiml.message(
-    `Hello!  You are on the list.  There are ${peopleAhead} people ahead of you.  The approximate wait time is ${peopleAhead *
-      AVG_HAIRCUT_DURATION} minutes.  We will text you when you're up next.`
+    `Hello!  You are on the list.  There are ${peopleAhead} people ahead of you.  The approximate wait time is ${waitTime} minutes.  We will text you when you're up next.`
   );
 
   // broadcast the new list to socket.io clients
@@ -71,3 +70,5 @@ io.on('connection', async socket => {
   const customers = await db('customers');
   socket.emit('data', {customers});
 });
+
+server.listen(process.env.PORT);

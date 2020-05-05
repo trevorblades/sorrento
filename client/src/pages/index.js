@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import io from 'socket.io-client';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
 
@@ -12,11 +12,14 @@ export default function Index() {
     return () => socket.close();
   });
 
+  const waitingCustomers = useMemo(
+    () => customers.filter(customer => customer.waiting),
+    [customers]
+  );
+
   function handleNextClick() {
     socket.emit('serve', {id: waitingCustomers[0].id});
   }
-
-  const waitingCustomers = customers.filter(customer => customer.waiting);
 
   return (
     <div>
