@@ -22,22 +22,32 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.post('/sms', async (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
 
-  await db('customers').insert({
-    name: req.body.Body,
-    phone: req.body.From
-  });
+  const accept = await db('settings')
+    .where('key', 'accept')
+    .first();
 
-  const customers = await db('customers');
-  const peopleAhead = customers.length - 1;
-  // TODO: factor in # of barbers to avg haircut duration
-  const waitTime = peopleAhead * AVG_HAIRCUT_DURATION;
+  if (accept.value) {
+    await db('customers').insert({
+      name: req.body.Body,
+      phone: req.body.From
+    });
 
-  twiml.message(
-    `Hello!  You are on the list.  There are ${peopleAhead} people ahead of you.  The approximate wait time is ${waitTime} minutes.  We will text you when you're up next.`
-  );
+    const customers = await db('customers');
+    const peopleAhead = customers.length - 1;
+    // TODO: factor in # of barbers to avg haircut duration
+    const waitTime = peopleAhead * AVG_HAIRCUT_DURATION;
 
-  // broadcast the new list to socket.io clients
-  io.emit('data', {customers});
+    twiml.message(
+      `Hello!  You are on the list.  There are ${peopleAhead} people ahead of you.  The approximate wait time is ${waitTime} minutes.  We will text you when you're up next.`
+    );
+
+    // broadcast the new list to socket.io clients
+    io.emit('data', {customers});
+  } else {
+    twiml.message(
+      "We have stopped accepting customers for today. Please come back tomorrow. We're open starting at 8am PT."
+    );
+  }
 
   res.writeHead(200, {'Content-Type': 'text/xml'});
   res.end(twiml.toString());
@@ -76,8 +86,22 @@ io.on('connection', async socket => {
     io.emit('data', {customers});
   });
 
+  socket.on('accept', async data => {
+    const [isAccepting] = await db('settings')
+      .where('key', 'accept')
+      .update('value', data.value)
+      .returning('value');
+    io.emit('data', {isAccepting});
+  });
+
   const customers = await db('customers');
-  socket.emit('data', {customers});
+  const accept = await db('settings')
+    .where('key', 'accept')
+    .first();
+  socket.emit('data', {
+    customers,
+    isAccepting: accept.value
+  });
 });
 
 server.listen(process.env.PORT);
