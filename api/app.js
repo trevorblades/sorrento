@@ -67,6 +67,15 @@ io.on('connection', async socket => {
     io.emit('data', {customers});
   });
 
+  socket.on('remove', async data => {
+    await db('customers')
+      .where('id', data.id)
+      .del();
+
+    const customers = await db('customers');
+    io.emit('data', {customers});
+  });
+
   const customers = await db('customers');
   socket.emit('data', {customers});
 });

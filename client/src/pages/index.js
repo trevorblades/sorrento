@@ -35,7 +35,9 @@ export default function Index() {
             <button onClick={() => socket.emit('serve', {id: customer.id})}>
               Serve
             </button>
-            <button>Remove</button>
+            <button onClick={() => socket.emit('remove', {id: customer.id})}>
+              Remove
+            </button>
           </li>
         ))}
       </ul>
