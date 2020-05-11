@@ -13,7 +13,7 @@ export default function Index() {
   });
 
   const waitingCustomers = useMemo(
-    () => customers.filter(customer => customer.waiting),
+    () => customers.filter(customer => !customer.servedAt),
     [customers]
   );
 
@@ -30,16 +30,25 @@ export default function Index() {
       <h3>Waiting:</h3>
       <ul>
         {waitingCustomers.map(customer => (
-          <li key={customer.id}>{customer.name}</li>
+          <li key={customer.id}>
+            {customer.name}
+            <button onClick={() => socket.emit('serve', {id: customer.id})}>
+              Serve
+            </button>
+            <button>Remove</button>
+          </li>
         ))}
       </ul>
       <h3>Served:</h3>
       <ul>
         {customers
-          .filter(customer => !customer.waiting)
-          .reverse()
+          .filter(customer => customer.servedAt)
+          .sort((a, b) => new Date(b.servedAt) - new Date(a.servedAt))
           .map(customer => (
-            <li key={customer.id}>{customer.name}</li>
+            <li key={customer.id}>
+              {customer.name} served at{' '}
+              {new Date(customer.servedAt).toLocaleTimeString()}
+            </li>
           ))}
       </ul>
     </div>

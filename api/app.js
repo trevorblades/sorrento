@@ -59,8 +59,8 @@ io.on('connection', async socket => {
     await db('customers')
       .where('id', data.id)
       .update({
-        waiting: false,
-        receipt: message.sid
+        receipt: message.sid,
+        servedAt: new Date()
       });
 
     const customers = await db('customers');
