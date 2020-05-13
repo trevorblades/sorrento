@@ -1,9 +1,10 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import io from 'socket.io-client';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
+import {useLazyRef} from '@shopify/react-hooks';
 
 export default function Index() {
-  const {current: socket} = useRef(io(process.env.GATSBY_API_URL));
+  const {current: socket} = useLazyRef(() => io(process.env.GATSBY_API_URL));
   const [state, setState] = useState({});
 
   // TODO: implement independant loading state
