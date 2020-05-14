@@ -5,7 +5,8 @@ const twilio = require('twilio');
 const bodyParser = require('body-parser');
 const knex = require('knex');
 
-const AVG_HAIRCUT_DURATION = 40;
+const AVERAGE_HANDLE_TIME = 40;
+const ACTIVE_AGENTS = 3;
 
 const db = knex({
   client: 'pg',
@@ -32,13 +33,20 @@ app.post('/sms', async (req, res) => {
       phone: req.body.From
     });
 
+    // this value is calculated based on an EWT equation found here
+    // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
     const customers = await db('customers');
-    const peopleAhead = customers.length - 1;
-    // TODO: factor in # of barbers to avg haircut duration
-    const waitTime = peopleAhead * AVG_HAIRCUT_DURATION;
+    const queue = customers.filter(customer => !customer.servedAt);
+    const positionInQueue = queue.length + 1;
+    const estimatedWaitTime =
+      (AVERAGE_HANDLE_TIME * positionInQueue) / ACTIVE_AGENTS;
 
     twiml.message(
-      `Hello!  You are on the list.  There are ${peopleAhead} people ahead of you.  The approximate wait time is ${waitTime} minutes.  We will text you when you're up next.`
+      `Hello!  You are on the list.  There are ${
+        queue.length
+      } people ahead of you.  The approximate wait time is ${Math.round(
+        estimatedWaitTime
+      )} minutes.  We will text you when you're up next.`
     );
 
     // broadcast the new list to socket.io clients
