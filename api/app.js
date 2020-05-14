@@ -1,8 +1,7 @@
-const app = require('express')();
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 const twilio = require('twilio');
-const bodyParser = require('body-parser');
 const knex = require('knex');
 
 const AVERAGE_HANDLE_TIME = 40;
@@ -18,7 +17,11 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
-app.use(bodyParser.urlencoded({extended: false}));
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
+app.use(express.urlencoded({extended: false}));
 
 app.post('/sms', async (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
