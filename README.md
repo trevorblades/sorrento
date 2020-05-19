@@ -2,7 +2,7 @@
 
 Web infrastructure for a local Vancouver barbershop. This repo contains a public website, as well as an SMS-based waitlist API and client built with Twilio and WebSockets.
 
-This project was a collaboration between myself and [Ken Taylor](https://github.com/kentaylor92).
+This project was a collaboration between me and [Ken Taylor](https://github.com/kentaylor92).
 
 ## How it works
 
