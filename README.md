@@ -1,19 +1,28 @@
-# Sorrento waitlist
+# Sorrento
 
-An SMS-based waitlist for a Vancouver barbershop
+Web infrastructure for a local Vancouver barbershop. This repo contains a public website, as well as an SMS-based waitlist API and client built with Twilio and WebSockets.
 
 ## How it works
 
-- Person texts number with their name
-  - Put customer at the end of a list
-  - Send them a text back with # of people ahead of them and estimated wait time
-- When a barber finishes a cut, they hit "next customer"
-  - Remove a customer from the top of the list
-  - Send the customer a text message saying "your spot is available for the next 5 minutes"
+1. Person texts number with their name
+  - New customer is created in the database using the body of the text (name) and the "from" phone number
+  - We automatically reply with the number of people ahead of them in line, and the estimated wait time
+  - If the shop is not accepting customers, a reply is sent telling the customer this
+1. Barber finishes a cut, presses "next customer" button
+  - First customer in line gets a `servedAt` timestamp added to their row, qualifying them as "served"
+  - We send a text to the customer's number telling them that they're up next
 
-## Tools we'll use
+## Tools/services used
 
-- React: frontend
-- Redis: datastore
-- WebSockets: keep things in sync
-- Twilio: programatic SMS
+- React
+- Twilio
+- Socket.io
+- Chakra UI
+- Gatsby
+- Express
+- PostgreSQL
+- Heroku
+
+# Thanks
+
+- [Matt Cool](https://mattcool.tech) for the design inspiration

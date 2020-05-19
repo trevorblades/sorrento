@@ -44,6 +44,8 @@ app.post('/sms', async (req, res) => {
     const estimatedWaitTime =
       (AVERAGE_HANDLE_TIME * positionInQueue) / ACTIVE_AGENTS;
 
+    // TODO: convert this into hours and minutes
+    // TODO: add current time + estimated wait time (4:30pm)
     twiml.message(
       `Hello!  You are on the list.  There are ${
         queue.length
