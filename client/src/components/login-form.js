@@ -1,13 +1,19 @@
 import PropTypes from 'prop-types';
-import React from 'react';
-import {Box, Button, Flex, Input} from '@chakra-ui/core';
+import React, {useState} from 'react';
+import {Button, Flex, Input, Stack, Text} from '@chakra-ui/core';
 
 export default function LoginForm(props) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
   async function handleSubmit(event) {
     event.preventDefault();
 
     const {username, password} = event.target;
     const basicAuth = `${username.value}:${password.value}`;
+
+    setLoading(true);
+
     const response = await fetch(`${process.env.GATSBY_API_URL}/auth`, {
       headers: {
         Authorization: `Basic ${btoa(basicAuth)}`
@@ -17,6 +23,9 @@ export default function LoginForm(props) {
     if (response.ok) {
       const token = await response.text();
       props.setToken(token);
+    } else {
+      setError(response.statusText);
+      setLoading(false);
     }
   }
 
@@ -33,14 +42,9 @@ export default function LoginForm(props) {
       autoComplete="off"
       onSubmit={handleSubmit}
     >
-      <Box textAlign="right" w="full" maxW="480px">
-        <Input
-          size="lg"
-          isRequired
-          mb="4"
-          placeholder="Username"
-          name="username"
-        />
+      <Stack spacing="4" w="full" maxW="480px">
+        {error && <Text>{error}</Text>}
+        <Input size="lg" isRequired placeholder="Username" name="username" />
         <Input
           size="lg"
           isRequired
@@ -48,10 +52,10 @@ export default function LoginForm(props) {
           type="password"
           name="password"
         />
-        <Button size="lg" mt="6" type="submit">
+        <Button isLoading={loading} size="lg" mt="2" ml="auto" type="submit">
           Submit
         </Button>
-      </Box>
+      </Stack>
     </Flex>
   );
 }
