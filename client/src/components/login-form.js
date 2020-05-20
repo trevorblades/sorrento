@@ -3,7 +3,7 @@ import React from 'react';
 import {Box, Button, Flex, Input} from '@chakra-ui/core';
 
 export default function LoginForm(props) {
-  const formSubmit = async event => {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const {username, password} = event.target;
@@ -18,7 +18,7 @@ export default function LoginForm(props) {
       const token = await response.text();
       props.setToken(token);
     }
-  };
+  }
 
   return (
     <Flex
@@ -28,11 +28,12 @@ export default function LoginForm(props) {
       justify="center"
       w={2 / 3}
       h="100vh"
+      px="16"
       bg="red.500"
       autoComplete="off"
-      onSubmit={formSubmit}
+      onSubmit={handleSubmit}
     >
-      <Box textAlign="right" w="480px">
+      <Box textAlign="right" w="full" maxW="480px">
         <Input
           size="lg"
           isRequired

@@ -1,6 +1,5 @@
 const express = require('express');
 const http = require('http');
-const socketIo = require('socket.io');
 const twilio = require('twilio');
 const knex = require('knex');
 const cors = require('cors');
@@ -8,10 +7,7 @@ const basicAuth = require('basic-auth');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const db = knex({
-  client: 'pg',
-  connection: 'postgres://localhost/sorrento'
-});
+const db = knex(process.env.DATABASE_URL);
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -20,7 +16,17 @@ const client = twilio(
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+
+const io = require('socket.io')(server, {
+  handlePreflightRequest(req, res) {
+    res.writeHead(200, {
+      'Access-Control-Allow-Headers': 'Authorization',
+      'Access-Control-Allow-Origin': 'http://localhost:8000',
+      'Access-Control-Allow-Credentials': true
+    });
+    res.end();
+  }
+});
 
 const REMOVE_KEYWORD = 'REMOVE';
 
@@ -37,7 +43,9 @@ app.get('/auth', async (req, res) => {
   if (user) {
     const isValid = bcrypt.compareSync(credentials.pass, user.password);
     if (isValid) {
-      const token = jwt.sign({name: user.name}, process.env.JWT_SECRET);
+      const token = jwt.sign({name: user.name}, process.env.JWT_SECRET, {
+        subject: user.id.toString()
+      });
       res.send(token);
       return;
     }
@@ -80,35 +88,67 @@ app.post('/sms', async (req, res) => {
         phone: req.body.From
       });
 
-      // this value is calculated based on an EWT equation found here
-      // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
       const customers = await db('customers');
       const queue = customers.filter(customer => !customer.servedAt);
 
-      const AVERAGE_HANDLE_TIME = 40;
-      const ACTIVE_AGENTS = 3;
-      const estimatedWaitTime = Math.round(
-        (AVERAGE_HANDLE_TIME * queue.length) / ACTIVE_AGENTS
+      const messages = ['Hello! You are on the list.'];
+      if (queue.length > 1) {
+        const AVERAGE_HANDLE_TIME = 40;
+        const ACTIVE_AGENTS = 3;
+
+        // this value is calculated based on an EWT equation found here
+        // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
+        const estimatedWaitTime = Math.round(
+          (AVERAGE_HANDLE_TIME * queue.length) / ACTIVE_AGENTS
+        );
+
+        messages.push(
+          `There are ${queue.length -
+            1} people ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
+        );
+      } else {
+        messages.push('There is nobody ahead of you.');
+      }
+
+      messages.push(
+        `We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list.`
       );
 
-      // TODO: convert this into hours and minutes
-      // TODO: add current time + estimated wait time (4:30pm)
-      twiml.message(
-        `Hello! You are on the list. There are ${queue.length -
-          1} people ahead of you. The approximate wait time is ${estimatedWaitTime} minutes. We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list.`
-      );
+      twiml.message(messages.join(' '));
 
-      // broadcast the new list to socket.io clients
+      // broadcast new customer list to all connected clients
       io.emit('data', {customers});
     } else {
       twiml.message(
-        "We have stopped accepting customers for today. Please come back tomorrow. We're open starting at 8am PT."
+        'We have stopped accepting customers for today. Visit https://sorrentobarbers.com for our store hours.'
       );
     }
   }
 
+  // send SMS reply
   res.writeHead(200, {'Content-Type': 'text/xml'});
   res.end(twiml.toString());
+});
+
+io.use(async (socket, next) => {
+  try {
+    const matches = socket.handshake.headers.authorization.match(
+      /bearer (\S+)/i
+    );
+
+    const {sub} = jwt.verify(matches[1], process.env.JWT_SECRET);
+    socket.user = await db('barbers')
+      .where('id', sub)
+      .first();
+
+    if (!socket.user) {
+      throw new Error('Invalid token');
+    }
+
+    return next();
+  } catch (error) {
+    return next(error);
+  }
 });
 
 io.on('connection', async socket => {
@@ -119,7 +159,7 @@ io.on('connection', async socket => {
 
     const message = await client.messages.create({
       body:
-        'Your barber is ready to serve you!  Please head over to Sorrento to meet your barber',
+        'Your barber is ready to serve you! Please head over to Sorrento to meet your barber.',
       from: '+16043308137',
       to: customer.phone
     });
@@ -156,6 +196,8 @@ io.on('connection', async socket => {
   const accept = await db('settings')
     .where('key', 'accept')
     .first();
+
+  // send initial state back to specific client on connection
   socket.emit('data', {
     customers,
     isAccepting: accept.value
