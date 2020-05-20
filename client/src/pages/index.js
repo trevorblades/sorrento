@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
 import io from 'socket.io-client';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
+import useInterval from 'react-use/lib/useInterval';
 import {
   Box,
   Button,
@@ -12,6 +13,33 @@ import {
   ListItem
 } from '@chakra-ui/core';
 import {useLazyRef} from '@shopify/react-hooks';
+
+function minutesSinceNow(date) {
+  const ms = Date.now() - date;
+  return Math.floor(ms / 1000 / 60);
+}
+
+function Timer(props) {
+  const [minutes, setMinutes] = useState(minutesSinceNow(props.date));
+
+  useInterval(() => {
+    setMinutes(minutesSinceNow(props.date));
+  }, 1000);
+
+  return (
+    <div>
+      Added{' '}
+      {minutes < 1
+        ? 'less than a minute'
+        : `${minutes} minute${minutes === 1 ? '' : 's'}`}{' '}
+      ago
+    </div>
+  );
+}
+
+Timer.propTypes = {
+  date: PropTypes.instanceOf(Date).isRequired
+};
 
 function App(props) {
   const {customers, isAccepting} = props.state;
@@ -55,35 +83,40 @@ function App(props) {
             Waiting:
           </Heading>
           <List spacing="4">
-            {waitingCustomers.map(customer => (
-              <ListItem
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                key={customer.id}
-              >
-                {customer.name}
-                <div>
-                  <Button
-                    size="sm"
-                    mr="2"
-                    onClick={() =>
-                      props.socket.emit('serve', {id: customer.id})
-                    }
-                  >
-                    Serve
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      props.socket.emit('remove', {id: customer.id})
-                    }
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </ListItem>
-            ))}
+            {waitingCustomers.map(customer => {
+              return (
+                <ListItem
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  key={customer.id}
+                >
+                  <div>
+                    <div>{customer.name}</div>
+                    <Timer date={new Date(customer.waitingSince)} />
+                  </div>
+                  <div>
+                    <Button
+                      size="sm"
+                      mr="2"
+                      onClick={() =>
+                        props.socket.emit('serve', {id: customer.id})
+                      }
+                    >
+                      Serve
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        props.socket.emit('remove', {id: customer.id})
+                      }
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </ListItem>
+              );
+            })}
           </List>
         </div>
         <div>
