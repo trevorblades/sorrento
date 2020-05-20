@@ -3,6 +3,10 @@ const http = require('http');
 const socketIo = require('socket.io');
 const twilio = require('twilio');
 const knex = require('knex');
+const cors = require('cors');
+const basicAuth = require('basic-auth');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const db = knex({
   client: 'pg',
@@ -17,8 +21,30 @@ const client = twilio(
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+
 const REMOVE_KEYWORD = 'REMOVE';
+
+app.use(cors());
 app.use(express.urlencoded({extended: false}));
+
+app.get('/auth', async (req, res) => {
+  const credentials = basicAuth(req);
+
+  const user = await db('barbers')
+    .where('username', credentials.name)
+    .first();
+
+  if (user) {
+    const isValid = bcrypt.compareSync(credentials.pass, user.password);
+    if (isValid) {
+      const token = jwt.sign({name: user.name}, process.env.JWT_SECRET);
+      res.send(token);
+      return;
+    }
+  }
+
+  res.sendStatus(401);
+});
 
 app.post('/sms', async (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
