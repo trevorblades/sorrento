@@ -7,6 +7,7 @@ import {Text} from '@chakra-ui/core';
 import {useLazyRef} from '@shopify/react-hooks';
 
 export default function App(props) {
+  // create a socket connection
   const {current: socket} = useLazyRef(() =>
     io(process.env.GATSBY_API_URL, {
       transportOptions: {
@@ -19,14 +20,17 @@ export default function App(props) {
     })
   );
 
+  // initialize state
   const [state, setState] = useState({
     loading: true,
     error: null
   });
 
   useEffectOnce(() => {
+    // open the connection when the component mounts
     socket.open();
 
+    // set up error handler
     socket.on('error', error => {
       setState({
         error,
@@ -34,6 +38,7 @@ export default function App(props) {
       });
     });
 
+    // merge new partial data into existing data
     socket.on('data', data => {
       setState(prevState => ({
         error: null,
@@ -45,6 +50,7 @@ export default function App(props) {
       }));
     });
 
+    // close the connection when the component unmounts
     return () => socket.close();
   });
 
