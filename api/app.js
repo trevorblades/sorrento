@@ -17,46 +17,68 @@ const client = twilio(
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
-
+const REMOVE_KEYWORD = 'REMOVE';
 app.use(express.urlencoded({extended: false}));
 
 app.post('/sms', async (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
 
-  const accept = await db('settings')
-    .where('key', 'accept')
-    .first();
-
-  if (accept.value) {
-    await db('customers').insert({
-      name: req.body.Body,
+  if (req.body.Body === REMOVE_KEYWORD) {
+    const condition = {
+      servedAt: null,
       phone: req.body.From
-    });
+    };
 
-    // this value is calculated based on an EWT equation found here
-    // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
-    const customers = await db('customers');
-    const queue = customers.filter(customer => !customer.servedAt);
+    const matches = await db('customers').where(condition);
 
-    const AVERAGE_HANDLE_TIME = 40;
-    const ACTIVE_AGENTS = 3;
-    const estimatedWaitTime = Math.round(
-      (AVERAGE_HANDLE_TIME * queue.length) / ACTIVE_AGENTS
-    );
+    if (matches.length) {
+      await db('customers')
+        .where(condition)
+        .del();
 
-    // TODO: convert this into hours and minutes
-    // TODO: add current time + estimated wait time (4:30pm)
-    twiml.message(
-      `Hello! You are on the list. There are ${queue.length -
-        1} people ahead of you. The approximate wait time is ${estimatedWaitTime} minutes. We will text you when you're up next.`
-    );
+      twiml.message('You have been removed from the list.');
 
-    // broadcast the new list to socket.io clients
-    io.emit('data', {customers});
+      const customers = await db('customers');
+      io.emit('data', {customers});
+    } else {
+      twiml.message('You are not on the list.');
+    }
   } else {
-    twiml.message(
-      "We have stopped accepting customers for today. Please come back tomorrow. We're open starting at 8am PT."
-    );
+    const accept = await db('settings')
+      .where('key', 'accept')
+      .first();
+
+    if (accept.value) {
+      await db('customers').insert({
+        name: req.body.Body,
+        phone: req.body.From
+      });
+
+      // this value is calculated based on an EWT equation found here
+      // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
+      const customers = await db('customers');
+      const queue = customers.filter(customer => !customer.servedAt);
+
+      const AVERAGE_HANDLE_TIME = 40;
+      const ACTIVE_AGENTS = 3;
+      const estimatedWaitTime = Math.round(
+        (AVERAGE_HANDLE_TIME * queue.length) / ACTIVE_AGENTS
+      );
+
+      // TODO: convert this into hours and minutes
+      // TODO: add current time + estimated wait time (4:30pm)
+      twiml.message(
+        `Hello! You are on the list. There are ${queue.length -
+          1} people ahead of you. The approximate wait time is ${estimatedWaitTime} minutes. We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list.`
+      );
+
+      // broadcast the new list to socket.io clients
+      io.emit('data', {customers});
+    } else {
+      twiml.message(
+        "We have stopped accepting customers for today. Please come back tomorrow. We're open starting at 8am PT."
+      );
+    }
   }
 
   res.writeHead(200, {'Content-Type': 'text/xml'});
