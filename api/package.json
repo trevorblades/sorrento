@@ -2,9 +2,6 @@
   "scripts": {
     "start": "nodemon -r dotenv/config app.js"
   },
-  "eslintConfig": {
-    "extends": "@trevorblades"
-  },
   "dependencies": {
     "express": "^4.17.1",
     "knex": "^0.21.1",

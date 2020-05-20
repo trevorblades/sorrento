@@ -1,4 +1,7 @@
 {
+  "eslintConfig": {
+    "extends": "@trevorblades"
+  },
   "devDependencies": {
     "@trevorblades/eslint-config": "^7.0.2",
     "eslint": "^6.8.0"

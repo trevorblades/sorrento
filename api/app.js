@@ -4,9 +4,6 @@ const socketIo = require('socket.io');
 const twilio = require('twilio');
 const knex = require('knex');
 
-const AVERAGE_HANDLE_TIME = 40;
-const ACTIVE_AGENTS = 3;
-
 const db = knex({
   client: 'pg',
   connection: 'postgres://localhost/sorrento'
@@ -40,18 +37,18 @@ app.post('/sms', async (req, res) => {
     // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
     const customers = await db('customers');
     const queue = customers.filter(customer => !customer.servedAt);
-    const positionInQueue = queue.length + 1;
-    const estimatedWaitTime =
-      (AVERAGE_HANDLE_TIME * positionInQueue) / ACTIVE_AGENTS;
+
+    const AVERAGE_HANDLE_TIME = 40;
+    const ACTIVE_AGENTS = 3;
+    const estimatedWaitTime = Math.round(
+      (AVERAGE_HANDLE_TIME * queue.length) / ACTIVE_AGENTS
+    );
 
     // TODO: convert this into hours and minutes
     // TODO: add current time + estimated wait time (4:30pm)
     twiml.message(
-      `Hello!  You are on the list.  There are ${
-        queue.length
-      } people ahead of you.  The approximate wait time is ${Math.round(
-        estimatedWaitTime
-      )} minutes.  We will text you when you're up next.`
+      `Hello! You are on the list. There are ${queue.length -
+        1} people ahead of you. The approximate wait time is ${estimatedWaitTime} minutes. We will text you when you're up next.`
     );
 
     // broadcast the new list to socket.io clients
