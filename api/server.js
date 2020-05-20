@@ -28,8 +28,6 @@ const io = require('socket.io')(server, {
   }
 });
 
-const REMOVE_KEYWORD = 'REMOVE';
-
 app.use(cors());
 app.use(express.urlencoded({extended: false}));
 
@@ -55,6 +53,7 @@ app.get('/auth', async (req, res) => {
 });
 
 app.post('/sms', async (req, res) => {
+  const REMOVE_KEYWORD = 'REMOVE';
   const twiml = new twilio.twiml.MessagingResponse();
 
   if (req.body.Body === REMOVE_KEYWORD) {
