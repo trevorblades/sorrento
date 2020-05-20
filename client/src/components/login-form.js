@@ -35,14 +35,14 @@ export default function LoginForm(props) {
       direction="column"
       align="center"
       justify="center"
-      w={2 / 3}
+      w={{md: 2 / 3}}
+      px={[10, 12, 16]}
       h="100vh"
-      px="16"
       bg="red.500"
       autoComplete="off"
       onSubmit={handleSubmit}
     >
-      <Stack spacing="4" w="full" maxW="480px">
+      <Stack spacing="4" w="full" maxW={{md: 480}}>
         {error && <Text>{error}</Text>}
         <Input size="lg" isRequired placeholder="Username" name="username" />
         <Input
@@ -52,7 +52,17 @@ export default function LoginForm(props) {
           type="password"
           name="password"
         />
-        <Button isLoading={loading} size="lg" mt="2" ml="auto" type="submit">
+        <Button
+          bg="gray.900"
+          _hover={{bg: 'gray.800'}}
+          _active={{bg: 'gray.700'}}
+          color="white"
+          isLoading={loading}
+          size="lg"
+          mt="2"
+          ml="auto"
+          type="submit"
+        >
           Submit
         </Button>
       </Stack>
