@@ -20,7 +20,10 @@ const server = http.createServer(app);
 const getCustomers = () =>
   db('customers')
     .select('customers.*', {barberName: 'barbers.name'})
-    .leftJoin('barbers', 'barbers.id', '=', 'servedBy');
+    .leftJoin('barbers', 'barbers.id', '=', 'servedBy')
+    // this works because the Sweden locale uses the ISO 8601 format
+    .where('servedAt', '>', new Date().toLocaleDateString('sv'))
+    .orWhereNull('servedAt');
 
 const io = require('socket.io')(server, {
   handlePreflightRequest(req, res) {
