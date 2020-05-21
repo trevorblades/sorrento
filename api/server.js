@@ -17,10 +17,16 @@ const client = twilio(
 const app = express();
 const server = http.createServer(app);
 
+const getCustomers = () =>
+  db('customers')
+    .select('customers.*', {barberName: 'barbers.name'})
+    .leftJoin('barbers', 'barbers.id', '=', 'servedBy');
+
 const io = require('socket.io')(server, {
   handlePreflightRequest(req, res) {
     res.writeHead(200, {
       'Access-Control-Allow-Headers': 'Authorization',
+      // TODO: change in production
       'Access-Control-Allow-Origin': 'http://localhost:8000',
       'Access-Control-Allow-Credentials': true
     });
@@ -71,7 +77,7 @@ app.post('/sms', async (req, res) => {
 
       twiml.message('You have been removed from the list.');
 
-      const customers = await db('customers');
+      const customers = await getCustomers();
       io.emit('data', {customers});
     } else {
       twiml.message('You are not on the list.');
@@ -87,7 +93,7 @@ app.post('/sms', async (req, res) => {
         phone: req.body.From
       });
 
-      const customers = await db('customers');
+      const customers = await getCustomers();
       const queue = customers.filter(customer => !customer.servedAt);
 
       const messages = ['Hello! You are on the list.'];
@@ -167,10 +173,11 @@ io.on('connection', async socket => {
       .where('id', data.id)
       .update({
         receipt: message.sid,
-        servedAt: new Date()
+        servedAt: new Date(),
+        servedBy: socket.user.id
       });
 
-    const customers = await db('customers');
+    const customers = await getCustomers();
     io.emit('data', {customers});
   });
 
@@ -179,7 +186,7 @@ io.on('connection', async socket => {
       .where('id', data.id)
       .del();
 
-    const customers = await db('customers');
+    const customers = await getCustomers();
     io.emit('data', {customers});
   });
 
@@ -191,7 +198,7 @@ io.on('connection', async socket => {
     io.emit('data', {isAccepting});
   });
 
-  const customers = await db('customers');
+  const customers = await getCustomers();
   const accept = await db('settings')
     .where('key', 'accept')
     .first();

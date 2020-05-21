@@ -14,6 +14,8 @@ import {
 export default function AppInner(props) {
   const {customers, isAccepting} = props.data;
 
+  console.log(customers);
+
   const waitingCustomers = useMemo(
     () => customers.filter(customer => !customer.servedAt),
     [customers]
@@ -102,6 +104,7 @@ export default function AppInner(props) {
                 <ListItem key={customer.id}>
                   {customer.name} served at{' '}
                   {new Date(customer.servedAt).toLocaleTimeString()}
+                  <div>Served by {customer.barberName}</div>
                 </ListItem>
               ))}
           </List>
