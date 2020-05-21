@@ -43,7 +43,7 @@ export default function LoginForm(props) {
       autoComplete="off"
       onSubmit={handleSubmit}
     >
-      <Box as="img" src={logo} h="100px" mb="20" />
+      <Box as="img" src={logo} h="20" mb="20" />
       <Stack spacing="4" w="full" maxW={{md: 480}}>
         {error && (
           <Text textAlign="center" fontWeight="bold">

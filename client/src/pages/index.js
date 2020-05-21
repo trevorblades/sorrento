@@ -53,8 +53,16 @@ export default function Index() {
   return (
     <NoSsr>
       {user ? (
-        <Flex h="100vh">
-          <Box as="aside" w="72px" textAlign="center" bg="red.500">
+        <Flex>
+          <Box
+            as="aside"
+            w="72px"
+            h="100vh"
+            textAlign="center"
+            bg="red.500"
+            position="sticky"
+            top="0"
+          >
             <Box as="img" src={logo} h="12" maxW="none" m="4" />
             <Stack mt="8" align="center" spacing="4">
               <SidebarButton icon={FaListOl} label="Waitlist" isSelected />

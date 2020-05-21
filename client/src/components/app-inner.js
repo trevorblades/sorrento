@@ -80,6 +80,8 @@ export default function AppInner(props) {
           h="20"
           fontSize="2xl"
           variantColor="blue"
+          position="sticky"
+          bottom="0"
           disabled={!waitingCustomers.length}
           onClick={handleNextClick}
         >
