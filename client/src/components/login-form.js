@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
-import {Button, Flex, Input, Stack, Text} from '@chakra-ui/core';
+import logo from '../assets/logo.svg';
+import {Box, Button, Flex, Input, Stack, Text} from '@chakra-ui/core';
 
 export default function LoginForm(props) {
   const [loading, setLoading] = useState(false);
@@ -42,8 +43,13 @@ export default function LoginForm(props) {
       autoComplete="off"
       onSubmit={handleSubmit}
     >
+      <Box as="img" src={logo} h="100px" mb="20" />
       <Stack spacing="4" w="full" maxW={{md: 480}}>
-        {error && <Text>{error}</Text>}
+        {error && (
+          <Text textAlign="center" fontWeight="bold">
+            {error}
+          </Text>
+        )}
         <Input size="lg" isRequired placeholder="Username" name="username" />
         <Input
           size="lg"

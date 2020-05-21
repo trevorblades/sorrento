@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Flex,
   Grid,
   Heading,
   List,
@@ -13,8 +14,6 @@ import {
 
 export default function AppInner(props) {
   const {customers, isAccepting} = props.data;
-
-  console.log(customers);
 
   const waitingCustomers = useMemo(
     () => customers.filter(customer => !customer.servedAt),
@@ -30,28 +29,12 @@ export default function AppInner(props) {
   }
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      px="10"
-      maxWidth="800px"
-      mx="auto"
-      minHeight="100vh"
-    >
-      <Box
-        py="4"
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb="10"
-      >
-        <Heading fontSize="4xl">💈 Sorrento</Heading>
-        <Checkbox isChecked={isAccepting} onChange={handleAcceptingChange}>
-          Accepting customers
-        </Checkbox>
-      </Box>
-      <Grid gap="10" templateColumns="repeat(2, 1fr)">
-        <div>
+    <Grid templateColumns="2fr 1fr" flexGrow="1">
+      <Flex direction="column">
+        <Box p="10">
+          <Checkbox isChecked={isAccepting} onChange={handleAcceptingChange}>
+            Accepting customers
+          </Checkbox>
           <Heading as="h3" fontSize="3xl" mb="4">
             Waiting:
           </Heading>
@@ -91,38 +74,38 @@ export default function AppInner(props) {
               );
             })}
           </List>
-        </div>
-        <div>
-          <Heading as="h3" fontSize="3xl" mb="4">
-            Served:
-          </Heading>
-          <List>
-            {customers
-              .filter(customer => customer.servedAt)
-              .sort((a, b) => new Date(b.servedAt) - new Date(a.servedAt))
-              .map(customer => (
-                <ListItem key={customer.id}>
-                  {customer.name} served at{' '}
-                  {new Date(customer.servedAt).toLocaleTimeString()}
-                  <div>Served by {customer.barberName}</div>
-                </ListItem>
-              ))}
-          </List>
-        </div>
-      </Grid>
-      <Button
-        mt="auto"
-        w="full"
-        rounded="none"
-        h="20"
-        fontSize="2xl"
-        variantColor="blue"
-        disabled={!waitingCustomers.length}
-        onClick={handleNextClick}
-      >
-        Next customer
-      </Button>
-    </Box>
+        </Box>
+        <Button
+          mt="auto"
+          w="full"
+          rounded="none"
+          h="20"
+          fontSize="2xl"
+          variantColor="blue"
+          disabled={!waitingCustomers.length}
+          onClick={handleNextClick}
+        >
+          Next customer
+        </Button>
+      </Flex>
+      <Box p="10" bg="gray.50">
+        <Heading as="h3" fontSize="3xl" mb="4">
+          Served:
+        </Heading>
+        <List>
+          {customers
+            .filter(customer => customer.servedAt)
+            .sort((a, b) => new Date(b.servedAt) - new Date(a.servedAt))
+            .map(customer => (
+              <ListItem key={customer.id}>
+                {customer.name} served at{' '}
+                {new Date(customer.servedAt).toLocaleTimeString()}
+                <div>Served by {customer.barberName}</div>
+              </ListItem>
+            ))}
+        </List>
+      </Box>
+    </Grid>
   );
 }
 

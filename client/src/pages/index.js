@@ -1,10 +1,32 @@
 import App from '../components/app';
 import LoginForm from '../components/login-form';
 import NoSsr from '@mpth/react-no-ssr';
+import PropTypes from 'prop-types';
 import React from 'react';
 import decode from 'jwt-decode';
+import logo from '../assets/logo.svg';
 import useLocalStorage from 'react-use/lib/useLocalStorage';
-import {Button} from '@chakra-ui/core';
+import {Box, Flex, IconButton, Stack, Tooltip} from '@chakra-ui/core';
+import {FaHistory, FaListOl, FaSignOutAlt} from 'react-icons/fa';
+
+function SidebarButton({label, ...props}) {
+  return (
+    <Tooltip label={label}>
+      <IconButton
+        variant="ghost"
+        _hover={{bg: 'red.300'}}
+        fontSize="2xl"
+        color="red.700"
+        rounded="full"
+        {...props}
+      />
+    </Tooltip>
+  );
+}
+
+SidebarButton.propTypes = {
+  label: PropTypes.string.isRequired
+};
 
 export default function Index() {
   const [user, setToken, removeToken] = useLocalStorage(
@@ -29,10 +51,21 @@ export default function Index() {
   return (
     <NoSsr>
       {user ? (
-        <div>
-          <Button onClick={removeToken}>Log out</Button>
+        <Flex h="100vh">
+          <Box as="aside" w="72px" textAlign="center" bg="red.500">
+            <Box as="img" src={logo} h="12" maxW="none" m="4" />
+            <Stack mt="8" align="center" spacing="4">
+              <SidebarButton icon={FaListOl} label="Waitlist" color="white" />
+              <SidebarButton icon={FaHistory} label="Customer history" />
+              <SidebarButton
+                icon={FaSignOutAlt}
+                onClick={removeToken}
+                label="Log out"
+              />
+            </Stack>
+          </Box>
           <App user={user} />
-        </div>
+        </Flex>
       ) : (
         <LoginForm setToken={setToken} />
       )}
