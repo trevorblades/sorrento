@@ -9,14 +9,15 @@ import useLocalStorage from 'react-use/lib/useLocalStorage';
 import {Box, Flex, IconButton, Stack, Tooltip} from '@chakra-ui/core';
 import {FaHistory, FaListOl, FaSignOutAlt} from 'react-icons/fa';
 
-function SidebarButton({label, ...props}) {
+function SidebarButton({label, isSelected, ...props}) {
   return (
     <Tooltip label={label}>
       <IconButton
         variant="ghost"
-        _hover={{bg: 'red.300'}}
+        _hover={{bg: 'red.400'}}
+        _active={{bg: 'red.300'}}
         fontSize="2xl"
-        color="red.700"
+        color={isSelected ? 'white' : 'red.700'}
         rounded="full"
         {...props}
       />
@@ -25,7 +26,8 @@ function SidebarButton({label, ...props}) {
 }
 
 SidebarButton.propTypes = {
-  label: PropTypes.string.isRequired
+  label: PropTypes.string.isRequired,
+  isSelected: PropTypes.bool
 };
 
 export default function Index() {
@@ -55,7 +57,7 @@ export default function Index() {
           <Box as="aside" w="72px" textAlign="center" bg="red.500">
             <Box as="img" src={logo} h="12" maxW="none" m="4" />
             <Stack mt="8" align="center" spacing="4">
-              <SidebarButton icon={FaListOl} label="Waitlist" color="white" />
+              <SidebarButton icon={FaListOl} label="Waitlist" isSelected />
               <SidebarButton icon={FaHistory} label="Customer history" />
               <SidebarButton
                 icon={FaSignOutAlt}

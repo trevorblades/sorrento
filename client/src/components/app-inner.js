@@ -39,40 +39,38 @@ export default function AppInner(props) {
             Waiting:
           </Heading>
           <List spacing="4">
-            {waitingCustomers.map(customer => {
-              return (
-                <ListItem
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  key={customer.id}
-                >
-                  <div>
-                    <div>{customer.name}</div>
-                    <Timer date={new Date(customer.waitingSince)} />
-                  </div>
-                  <div>
-                    <Button
-                      size="sm"
-                      mr="2"
-                      onClick={() =>
-                        props.socket.emit('serve', {id: customer.id})
-                      }
-                    >
-                      Serve
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        props.socket.emit('remove', {id: customer.id})
-                      }
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </ListItem>
-              );
-            })}
+            {waitingCustomers.map(customer => (
+              <Flex
+                as={ListItem}
+                key={customer.id}
+                justify="space-between"
+                align="center"
+              >
+                <div>
+                  <div>{customer.name}</div>
+                  <Timer date={new Date(customer.waitingSince)} />
+                </div>
+                <div>
+                  <Button
+                    size="sm"
+                    mr="2"
+                    onClick={() =>
+                      props.socket.emit('serve', {id: customer.id})
+                    }
+                  >
+                    Serve
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      props.socket.emit('remove', {id: customer.id})
+                    }
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </Flex>
+            ))}
           </List>
         </Box>
         <Button
