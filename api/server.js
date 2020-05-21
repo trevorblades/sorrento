@@ -21,8 +21,10 @@ const io = require('socket.io')(server, {
   handlePreflightRequest(req, res) {
     res.writeHead(200, {
       'Access-Control-Allow-Headers': 'Authorization',
-      // TODO: change in production
-      'Access-Control-Allow-Origin': 'http://localhost:8000',
+      'Access-Control-Allow-Origin':
+        process.env.NODE_ENV === 'production'
+          ? 'https://sorrentobarbers.com'
+          : 'http://localhost:8000',
       'Access-Control-Allow-Credentials': true
     });
     res.end();
@@ -144,7 +146,7 @@ app.post('/sms', async (req, res) => {
 io.use(async (socket, next) => {
   try {
     const matches = socket.handshake.headers.authorization.match(
-      /bearer (\S+)/i
+      /^bearer (\S+)$/i
     );
 
     const {sub} = jwt.verify(matches[1], process.env.JWT_SECRET);
