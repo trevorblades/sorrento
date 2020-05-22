@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import io from 'socket.io-client';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
-import {Text} from '@chakra-ui/core';
+import {Box, Spinner, Text} from '@chakra-ui/core';
 import {useLazyRef} from '@shopify/react-hooks';
 
 export default function App(props) {
@@ -55,7 +55,11 @@ export default function App(props) {
   });
 
   if (state.loading) {
-    return <Text>Loading...</Text>;
+    return (
+      <Box m="auto">
+        <Spinner />
+      </Box>
+    );
   }
 
   if (state.error) {

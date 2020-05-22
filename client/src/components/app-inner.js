@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   Flex,
-  FormLabel,
   Grid,
   Heading,
   List,
@@ -15,7 +14,7 @@ import {
   Text
 } from '@chakra-ui/core';
 import {DarkButton, LOGO_HEIGHT, LOGO_MARGIN} from '../utils';
-import {FaArrowRight, FaCut} from 'react-icons/fa';
+import {FaArrowRight} from 'react-icons/fa';
 import {format} from 'date-fns';
 
 function PanelHeading(props) {
@@ -37,7 +36,9 @@ function PanelListItem({title, subtitle, children, ...props}) {
         <Text fontSize="2xl" fontWeight="medium">
           {title}
         </Text>
-        <Text fontSize="xl">{subtitle}</Text>
+        <Text lineHeight="normal" fontSize="xl">
+          {subtitle}
+        </Text>
       </div>
       <div>{children}</div>
     </Flex>
@@ -74,21 +75,29 @@ export default function AppInner(props) {
   }
 
   function handleAcceptingChange(event) {
-    props.socket.emit('accept', {value: event.target.checked});
+    if (
+      event.target.checked ||
+      confirm('Are you sure you want to stop accepting customers?')
+    ) {
+      props.socket.emit('accept', {value: event.target.checked});
+    }
   }
 
   return (
     <Grid templateColumns="2fr 1fr" flexGrow="1">
       <Flex direction="column">
-        <Box px="10">
+        <Box p="10" pt="0">
           <Flex
             h={LOGO_HEIGHT}
             my={LOGO_MARGIN}
             align="center"
             justify="flex-end"
           >
-            <FormLabel htmlFor="accepting">Accepting customers</FormLabel>
+            <Text mr="2" as="label" htmlFor="accepting">
+              Accepting customers
+            </Text>
             <Switch
+              display="flex"
               id="accepting"
               isChecked={isAccepting}
               onChange={handleAcceptingChange}
@@ -109,7 +118,15 @@ export default function AppInner(props) {
                   Serve
                 </DarkButton>
                 <Button
-                  onClick={() => props.socket.emit('remove', {id: customer.id})}
+                  onClick={() => {
+                    if (
+                      confirm(
+                        `Are you sure you want to remove "${customer.name}"?`
+                      )
+                    ) {
+                      props.socket.emit('remove', {id: customer.id});
+                    }
+                  }}
                 >
                   Remove
                 </Button>
@@ -133,9 +150,16 @@ export default function AppInner(props) {
           Next customer
         </DarkButton>
       </Flex>
-      <Flex direction="column" px="10" bg="gray.50">
+      <Flex
+        h="100vh"
+        position="sticky"
+        top="0"
+        direction="column"
+        px="10"
+        bg="gray.50"
+      >
         <Flex h={LOGO_HEIGHT} my={LOGO_MARGIN} align="center">
-          <Avatar size="xs" mr="2" name={props.user.name} />
+          <Avatar fontSize="sm" size="xs" mr="2" name={props.user.name} />
           Logged in as {props.user.name}
         </Flex>
         {servedCustomers.length ? (
@@ -156,9 +180,11 @@ export default function AppInner(props) {
             </List>
           </>
         ) : (
-          <Box textAlign="center" m="auto" color="gray.500">
-            <Box as={FaCut} mx="auto" fontSize="4xl" mb="2" />
-            <Text>No customers have been served today</Text>
+          <Box textAlign="center" m="auto">
+            <Box fontSize="5xl">💈</Box>
+            <Text fontSize="lg" color="gray.500">
+              No customers have been served today
+            </Text>
           </Box>
         )}
       </Flex>
