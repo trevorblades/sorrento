@@ -62,7 +62,7 @@ export default function App(props) {
     return <Text color="red.500">{state.error}</Text>;
   }
 
-  return <AppInner data={state.data} socket={socket} />;
+  return <AppInner user={props.user} data={state.data} socket={socket} />;
 }
 
 App.propTypes = {

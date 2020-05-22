@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import logo from '../assets/logo.svg';
-import {Box, Button, Flex, Input, Stack, Text} from '@chakra-ui/core';
+import {Box, Flex, Input, Stack, Text} from '@chakra-ui/core';
+import {DarkButton} from '../utils';
 
 export default function LoginForm(props) {
   const [loading, setLoading] = useState(false);
@@ -58,11 +59,7 @@ export default function LoginForm(props) {
           type="password"
           name="password"
         />
-        <Button
-          bg="gray.900"
-          _hover={{bg: 'gray.800'}}
-          _active={{bg: 'gray.700'}}
-          color="white"
+        <DarkButton
           isLoading={loading}
           size="lg"
           mt="2"
@@ -70,7 +67,7 @@ export default function LoginForm(props) {
           type="submit"
         >
           Submit
-        </Button>
+        </DarkButton>
       </Stack>
     </Flex>
   );

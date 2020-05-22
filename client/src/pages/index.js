@@ -8,6 +8,7 @@ import logo from '../assets/logo.svg';
 import useLocalStorage from 'react-use/lib/useLocalStorage';
 import {Box, Flex, IconButton, Stack, Tooltip} from '@chakra-ui/core';
 import {FaHistory, FaListOl, FaSignOutAlt} from 'react-icons/fa';
+import {LOGO_HEIGHT, LOGO_MARGIN} from '../utils';
 
 function SidebarButton({label, isSelected, ...props}) {
   return (
@@ -63,7 +64,13 @@ export default function Index() {
             position="sticky"
             top="0"
           >
-            <Box as="img" src={logo} h="12" maxW="none" m="4" />
+            <Box
+              as="img"
+              src={logo}
+              h={LOGO_HEIGHT}
+              maxW="none"
+              m={LOGO_MARGIN}
+            />
             <Stack mt="8" align="center" spacing="4">
               <SidebarButton icon={FaListOl} label="Waitlist" isSelected />
               <SidebarButton icon={FaHistory} label="Customer history" />
