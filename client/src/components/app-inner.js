@@ -33,7 +33,7 @@ function PanelListItem({title, subtitle, children, ...props}) {
   return (
     <Flex as={ListItem} justify="space-between" align="center" {...props}>
       <div>
-        <Text fontSize="2xl" fontWeight="medium">
+        <Text lineHeight="normal" fontSize="2xl" fontWeight="medium">
           {title}
         </Text>
         <Text lineHeight="normal" fontSize="xl">
@@ -50,6 +50,10 @@ PanelListItem.propTypes = {
   subtitle: PropTypes.node.isRequired,
   children: PropTypes.node.isRequired
 };
+
+function UserAvatar(props) {
+  return <Avatar fontSize="sm" size="xs" {...props} />;
+}
 
 export default function AppInner(props) {
   const {customers, isAccepting} = props.data;
@@ -84,7 +88,14 @@ export default function AppInner(props) {
   }
 
   return (
-    <Grid templateColumns="2fr 1fr" flexGrow="1">
+    <Grid
+      templateColumns={{
+        base: '1fr',
+        lg: 'repeat(2, 1fr)',
+        xl: '2fr 1fr'
+      }}
+      flexGrow="1"
+    >
       <Flex direction="column">
         <Box p="10" pt="0">
           <Flex
@@ -102,6 +113,7 @@ export default function AppInner(props) {
               isChecked={isAccepting}
               onChange={handleAcceptingChange}
             />
+            <UserAvatar ml="3" display={{lg: 'none'}} name={props.user.name} />
           </Flex>
           <PanelHeading>Waiting</PanelHeading>
           <List spacing="6">
@@ -147,19 +159,34 @@ export default function AppInner(props) {
           disabled={!waitingCustomers.length}
           onClick={handleNextClick}
         >
-          Next customer
+          <span>
+            Next{' '}
+            <Box
+              as="span"
+              display={{
+                display: 'none',
+                md: 'inline'
+              }}
+            >
+              customer
+            </Box>
+          </span>
         </DarkButton>
       </Flex>
-      <Flex
+      <Box
         h="100vh"
         position="sticky"
         top="0"
-        direction="column"
+        flexDirection="column"
         px="10"
         bg="gray.50"
+        display={{
+          base: 'none',
+          lg: 'flex'
+        }}
       >
         <Flex h={LOGO_HEIGHT} my={LOGO_MARGIN} align="center">
-          <Avatar fontSize="sm" size="xs" mr="2" name={props.user.name} />
+          <UserAvatar mr="2" name={props.user.name} />
           Logged in as {props.user.name}
         </Flex>
         {servedCustomers.length ? (
@@ -187,7 +214,7 @@ export default function AppInner(props) {
             </Text>
           </Box>
         )}
-      </Flex>
+      </Box>
     </Grid>
   );
 }
