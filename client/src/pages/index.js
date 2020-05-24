@@ -14,10 +14,11 @@ export default function Home() {
   const {allInstaNode} = useStaticQuery(
     graphql`
       {
-        allInstaNode {
+        allInstaNode(sort: {order: DESC, fields: timestamp}) {
           nodes {
-            id
             original
+            id
+            timestamp
           }
         }
       }
