@@ -52,8 +52,28 @@ PanelListItem.propTypes = {
 };
 
 function UserAvatar(props) {
-  return <Avatar fontSize="sm" size="xs" {...props} />;
+  return (
+    <>
+      <Avatar mr="2" fontSize="sm" size="xs" name={props.user.name} />
+      <span>
+        <Box
+          as="span"
+          display={{
+            base: 'none',
+            md: 'inline'
+          }}
+        >
+          Logged in as{' '}
+        </Box>
+        {props.user.name}
+      </span>
+    </>
+  );
 }
+
+UserAvatar.propTypes = {
+  user: PropTypes.object.isRequired
+};
 
 export default function AppInner(props) {
   const {customers, isAccepting} = props.data;
@@ -97,15 +117,27 @@ export default function AppInner(props) {
       flexGrow="1"
     >
       <Flex direction="column">
-        <Box p="10" pt="0">
+        <Box px={[6, 8, 10]}>
           <Flex
             h={LOGO_HEIGHT}
             my={LOGO_MARGIN}
             align="center"
             justify="flex-end"
           >
-            <Text mr="2" as="label" htmlFor="accepting">
-              Accepting customers
+            <Box display={{lg: 'none'}}>
+              <UserAvatar user={props.user} />
+            </Box>
+            <Text ml="auto" mr="2" as="label" htmlFor="accepting">
+              Accepting{' '}
+              <Box
+                as="span"
+                display={{
+                  base: 'none',
+                  md: 'inline'
+                }}
+              >
+                customers
+              </Box>
             </Text>
             <Switch
               display="flex"
@@ -113,7 +145,6 @@ export default function AppInner(props) {
               isChecked={isAccepting}
               onChange={handleAcceptingChange}
             />
-            <UserAvatar ml="3" display={{lg: 'none'}} name={props.user.name} />
           </Flex>
           <PanelHeading>Waiting</PanelHeading>
           <List spacing="6">
@@ -178,7 +209,7 @@ export default function AppInner(props) {
         position="sticky"
         top="0"
         flexDirection="column"
-        px="10"
+        px={[6, 8, 10]}
         bg="gray.50"
         display={{
           base: 'none',
@@ -186,8 +217,7 @@ export default function AppInner(props) {
         }}
       >
         <Flex h={LOGO_HEIGHT} my={LOGO_MARGIN} align="center">
-          <UserAvatar mr="2" name={props.user.name} />
-          Logged in as {props.user.name}
+          <UserAvatar user={props.user} />
         </Flex>
         {servedCustomers.length ? (
           <>

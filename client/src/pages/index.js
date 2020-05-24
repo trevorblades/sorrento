@@ -4,10 +4,12 @@ import NoSsr from '@mpth/react-no-ssr';
 import PropTypes from 'prop-types';
 import React from 'react';
 import decode from 'jwt-decode';
+import icon from '../assets/icon.svg';
 import logo from '../assets/logo.svg';
 import useLocalStorage from 'react-use/lib/useLocalStorage';
 import {Box, Flex, IconButton, Stack, Tooltip} from '@chakra-ui/core';
 import {FaHistory, FaListOl, FaSignOutAlt} from 'react-icons/fa';
+import {Helmet} from 'react-helmet';
 import {LOGO_HEIGHT, LOGO_MARGIN} from '../utils';
 
 function SidebarButton({label, isSelected, ...props}) {
@@ -52,40 +54,66 @@ export default function Index() {
   );
 
   return (
-    <NoSsr>
-      {user ? (
-        <Flex>
-          <Box
-            as="aside"
-            w="72px"
-            h="100vh"
-            textAlign="center"
-            bg="red.500"
-            position="sticky"
-            top="0"
-          >
+    <>
+      <Helmet defaultTitle="Sorrento" titleTemplate="%s - Sorrento" />
+      <NoSsr>
+        {user ? (
+          <Flex>
+            <Helmet>
+              <title>Logged in as {user.name}</title>
+            </Helmet>
             <Box
-              as="img"
-              src={logo}
-              h={LOGO_HEIGHT}
-              maxW="none"
-              m={LOGO_MARGIN}
-            />
-            <Stack mt="8" align="center" spacing="4">
-              <SidebarButton icon={FaListOl} label="Waitlist" isSelected />
-              <SidebarButton icon={FaHistory} label="Customer history" />
-              <SidebarButton
-                icon={FaSignOutAlt}
-                onClick={removeToken}
-                label="Log out"
+              as="aside"
+              w={{
+                base: '64px',
+                lg: '72px'
+              }}
+              h="100vh"
+              textAlign="center"
+              bg="red.500"
+              position="sticky"
+              top="0"
+            >
+              <Box
+                as="img"
+                src={logo}
+                h={LOGO_HEIGHT}
+                maxW="none"
+                m={LOGO_MARGIN}
+                display={{
+                  base: 'none',
+                  lg: 'block'
+                }}
               />
-            </Stack>
-          </Box>
-          <App user={user} />
-        </Flex>
-      ) : (
-        <LoginForm setToken={setToken} />
-      )}
-    </NoSsr>
+              <Box
+                as="img"
+                src={icon}
+                h={LOGO_HEIGHT}
+                my={LOGO_MARGIN}
+                mx="auto"
+                display={{lg: 'none'}}
+              />
+              <Stack mt="8" align="center" spacing="4">
+                <SidebarButton icon={FaListOl} label="Waitlist" isSelected />
+                <SidebarButton icon={FaHistory} label="Customer history" />
+                <SidebarButton
+                  icon={FaSignOutAlt}
+                  onClick={removeToken}
+                  label="Log out"
+                />
+              </Stack>
+            </Box>
+            <App user={user} />
+          </Flex>
+        ) : (
+          <>
+            <Helmet>
+              <title>Log in</title>
+            </Helmet>
+            <LoginForm setToken={setToken} />
+          </>
+        )}
+      </NoSsr>
+    </>
   );
 }
