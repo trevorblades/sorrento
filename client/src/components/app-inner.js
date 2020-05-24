@@ -40,7 +40,7 @@ function PanelListItem({title, subtitle, children, ...props}) {
           {subtitle}
         </Text>
       </div>
-      <div>{children}</div>
+      <Box flexShrink="0">{children}</Box>
     </Flex>
   );
 }
