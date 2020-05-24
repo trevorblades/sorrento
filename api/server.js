@@ -114,15 +114,14 @@ app.post('/sms', async (req, res) => {
 
         // this value is calculated based on an EWT equation found here
         // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
+        const peopleAhead = queue.length - 1;
         const estimatedWaitTime = Math.round(
-          (AVERAGE_HANDLE_TIME * queue.length) / ACTIVE_AGENTS
+          (AVERAGE_HANDLE_TIME * peopleAhead) / ACTIVE_AGENTS
         );
 
         messages.push(
           `There ${
-            queue.length === 2
-              ? 'is 1 person'
-              : `are ${queue.length - 1} people`
+            peopleAhead === 1 ? 'is 1 person' : `are ${peopleAhead} people`
           } ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
         );
       } else {
