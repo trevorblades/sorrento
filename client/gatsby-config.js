@@ -6,6 +6,18 @@ module.exports = {
       options: {
         isUsingColorMode: false
       }
+    },
+    {
+      resolve: 'gatsby-source-instagram',
+      options: {
+        username: 'sorrentobarbers'
+      }
+    },
+    {
+      resolve: 'gatsby-plugin-manifest',
+      options: {
+        icon: 'src/assets/icon.svg'
+      }
     }
   ]
 };

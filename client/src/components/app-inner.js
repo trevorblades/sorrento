@@ -75,6 +75,8 @@ UserAvatar.propTypes = {
   user: PropTypes.object.isRequired
 };
 
+const PANEL_PADDING = [6, 8, 10];
+
 export default function AppInner(props) {
   const {customers, isAccepting} = props.data;
 
@@ -117,7 +119,7 @@ export default function AppInner(props) {
       flexGrow="1"
     >
       <Flex direction="column">
-        <Box px={[6, 8, 10]}>
+        <Box px={PANEL_PADDING} pb={PANEL_PADDING}>
           <Flex
             h={LOGO_HEIGHT}
             my={LOGO_MARGIN}
@@ -209,7 +211,7 @@ export default function AppInner(props) {
         position="sticky"
         top="0"
         flexDirection="column"
-        px={[6, 8, 10]}
+        px={PANEL_PADDING}
         bg="gray.50"
         overflow="hidden"
         display={{

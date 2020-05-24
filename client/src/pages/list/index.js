@@ -33,7 +33,7 @@ SidebarButton.propTypes = {
   isSelected: PropTypes.bool
 };
 
-export default function Index() {
+export default function List() {
   const [user, setToken, removeToken] = useLocalStorage(
     'sorrento:token',
     undefined,
