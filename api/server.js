@@ -119,8 +119,11 @@ app.post('/sms', async (req, res) => {
         );
 
         messages.push(
-          `There are ${queue.length -
-            1} people ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
+          `There ${
+            queue.length === 2
+              ? 'is 1 person'
+              : `are ${queue.length - 1} people`
+          } ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
         );
       } else {
         messages.push('There is nobody ahead of you.');
