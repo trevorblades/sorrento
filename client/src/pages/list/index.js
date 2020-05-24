@@ -1,16 +1,16 @@
-import App from '../components/app';
-import LoginForm from '../components/login-form';
+import App from '../../components/app';
+import LoginForm from '../../components/login-form';
 import NoSsr from '@mpth/react-no-ssr';
 import PropTypes from 'prop-types';
 import React from 'react';
 import decode from 'jwt-decode';
-import icon from '../assets/icon.svg';
-import logo from '../assets/logo.svg';
+import icon from '../../assets/icon.svg';
+import logo from '../../assets/logo.svg';
 import useLocalStorage from 'react-use/lib/useLocalStorage';
 import {Box, Flex, IconButton, Stack, Tooltip} from '@chakra-ui/core';
 import {FaHistory, FaListOl, FaSignOutAlt} from 'react-icons/fa';
 import {Helmet} from 'react-helmet';
-import {LOGO_HEIGHT, LOGO_MARGIN} from '../utils';
+import {LOGO_HEIGHT, LOGO_MARGIN} from '../../utils';
 
 function SidebarButton({label, isSelected, ...props}) {
   return (
