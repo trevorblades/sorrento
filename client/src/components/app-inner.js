@@ -217,7 +217,7 @@ export default function AppInner(props) {
           lg: 'flex'
         }}
       >
-        <Flex h={LOGO_HEIGHT} my={LOGO_MARGIN} align="center">
+        <Flex flexShrink="0" h={LOGO_HEIGHT} my={LOGO_MARGIN} align="center">
           <UserAvatar user={props.user} />
         </Flex>
         {servedCustomers.length ? (
