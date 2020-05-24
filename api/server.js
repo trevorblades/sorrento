@@ -19,7 +19,7 @@ const server = http.createServer(app);
 
 const origin =
   process.env.NODE_ENV === 'production'
-    ? 'https://unruffled-brown-893b3b.netlify.app'
+    ? 'https://sorrentobarbers.com'
     : 'http://localhost:8000';
 
 const io = require('socket.io')(server, {
