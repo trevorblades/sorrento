@@ -211,6 +211,7 @@ export default function AppInner(props) {
         flexDirection="column"
         px={[6, 8, 10]}
         bg="gray.50"
+        overflow="hidden"
         display={{
           base: 'none',
           lg: 'flex'
