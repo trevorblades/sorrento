@@ -48,22 +48,23 @@ app.use(express.urlencoded({extended: false}));
 app.get('/auth', async (req, res) => {
   const credentials = basicAuth(req);
 
-  const user = await db('barbers')
-    .where('username', credentials.name)
-    .first();
+  try {
+    const user = await db('barbers')
+      .where('username', credentials.name)
+      .first();
 
-  if (user) {
-    const isValid = bcrypt.compareSync(credentials.pass, user.password);
-    if (isValid) {
-      const token = jwt.sign({name: user.name}, process.env.JWT_SECRET, {
-        subject: user.id.toString()
-      });
-      res.send(token);
-      return;
+    if (!user || !bcrypt.compareSync(credentials.pass, user.password)) {
+      throw new Error('Unauthorized');
     }
-  }
 
-  res.sendStatus(401);
+    const token = jwt.sign({name: user.name}, process.env.JWT_SECRET, {
+      subject: user.id.toString()
+    });
+
+    res.send(token);
+  } catch (error) {
+    res.sendStatus(401);
+  }
 });
 
 app.post('/sms', async (req, res) => {
