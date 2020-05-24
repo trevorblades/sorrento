@@ -17,14 +17,16 @@ const client = twilio(
 const app = express();
 const server = http.createServer(app);
 
+const origin =
+  process.env.NODE_ENV === 'production'
+    ? 'https://unruffled-brown-893b3b.netlify.app'
+    : 'http://localhost:8000';
+
 const io = require('socket.io')(server, {
   handlePreflightRequest(req, res) {
     res.writeHead(200, {
       'Access-Control-Allow-Headers': 'Authorization',
-      'Access-Control-Allow-Origin':
-        process.env.NODE_ENV === 'production'
-          ? 'https://sorrentobarbers.com'
-          : 'http://localhost:8000',
+      'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Credentials': true
     });
     res.end();
@@ -42,7 +44,7 @@ function getCustomers() {
   );
 }
 
-app.use(cors());
+app.use(cors({origin}));
 app.use(express.urlencoded({extended: false}));
 
 app.get('/auth', async (req, res) => {
