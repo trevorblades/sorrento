@@ -1,8 +1,8 @@
-import React from 'react';
-import logo from '../assets/logo.svg';
-import {Box, Flex, Heading, PseudoBox, Text} from '@chakra-ui/core';
-import {Helmet} from 'react-helmet';
-import {graphql, useStaticQuery} from 'gatsby';
+import React from "react";
+import logo from "../assets/logo.svg";
+import { Box, Flex, Heading, PseudoBox, Text } from "@chakra-ui/core";
+import { Helmet } from "react-helmet";
+import { graphql, useStaticQuery } from "gatsby";
 
 function HomePageHeading(props) {
   return (
@@ -11,10 +11,10 @@ function HomePageHeading(props) {
 }
 
 export default function Home() {
-  const {allInstaNode} = useStaticQuery(
+  const { allInstaNode } = useStaticQuery(
     graphql`
       {
-        allInstaNode(sort: {order: DESC, fields: timestamp}) {
+        allInstaNode(sort: { order: DESC, fields: timestamp }) {
           nodes {
             original
             id
@@ -40,9 +40,11 @@ export default function Home() {
         <Box mt="200px" mb="16" maxW="599px" as="img" src={logo} />
         <HomePageHeading mb="8">2417 E Hastings St, Vancouver</HomePageHeading>
         <HomePageHeading>
-          Tuesday-Saturday: 8 AM-6 PM
+          Tuesday: 8 AM - 1 PM
           <br />
-          Sunday: 10 AM-3 PM
+          Wednesday - Saturday: 8 AM - 6 PM
+          <br />
+          Sunday: 10 AM - 3 PM
         </HomePageHeading>
       </Flex>
       <Box px="20" mb="120px">
@@ -54,7 +56,7 @@ export default function Home() {
         </HomePageHeading>
       </Box>
       <Flex h="500px" overflow="hidden" bg="black">
-        {allInstaNode.nodes.map(instaNode => (
+        {allInstaNode.nodes.map((instaNode) => (
           <PseudoBox
             as="a"
             h="full"
@@ -63,8 +65,8 @@ export default function Home() {
             href={`https://instagram.com/p/${instaNode.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            _hover={{opacity: 0.9}}
-            _active={{opacity: 0.8}}
+            _hover={{ opacity: 0.9 }}
+            _active={{ opacity: 0.8 }}
           >
             <Box as="img" h="full" loading="lazy" src={instaNode.original} />
           </PseudoBox>
