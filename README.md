@@ -25,6 +25,7 @@ This project was a collaboration between me and [Ken Taylor](https://github.com/
 - PostgreSQL
 - Heroku
 
-# Thanks
+## Acknowledgments
 
+- [Ken Taylor](https://github.com/kentaylor92) for pair programming this entire project
 - [Matt Cool](https://mattcool.tech) for the design inspiration
