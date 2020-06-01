@@ -1,5 +1,4 @@
 const express = require('express');
-const http = require('http');
 const twilio = require('twilio');
 const knex = require('knex');
 const cors = require('cors');
@@ -8,6 +7,7 @@ const pluralize = require('pluralize');
 const basicAuth = require('basic-auth');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const {ApolloServer, gql, PubSub} = require('apollo-server-express');
 
 const db = knex(process.env.DATABASE_URL);
 
@@ -17,23 +17,12 @@ const client = twilio(
 );
 
 const app = express();
-const server = http.createServer(app);
+const pubsub = new PubSub();
 
 const origin =
   process.env.NODE_ENV === 'production'
     ? 'https://sorrentobarbers.com'
     : 'http://localhost:8000';
-
-const io = require('socket.io')(server, {
-  handlePreflightRequest(req, res) {
-    res.writeHead(200, {
-      'Access-Control-Allow-Headers': 'Authorization',
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Credentials': true
-    });
-    res.end();
-  }
-});
 
 function getCustomers(organizationId) {
   return (
@@ -227,4 +216,97 @@ io.on('connection', async socket => {
     });
 });
 
-server.listen(process.env.PORT);
+const typeDefs = gql`
+  type Query {
+    customers: [Customer!]!
+  }
+
+  type Subscription {
+    organization: Organization!
+  }
+
+  type Mutation {
+    updateOrganization($input: UpdateOrganizationInput!): Organization
+  }
+
+  input UpdateOrganizationInput {
+    accepting: Boolean
+  }
+
+  type Customer {
+    id: ID!
+    name: String!
+  }
+
+  type Organization {
+    id: ID!
+    accepting: Boolean!
+  }
+`;
+
+const resolvers = {
+  Query: {
+    customers: (parent, args, {db, user}) =>
+      db('customers').where('organizationId', user.organizationId)
+  },
+  Subscription: {
+    organization: {
+      subscribe: () => pubsub.asyncIterator('organization')
+    }
+  },
+  Mutation: {
+    updateOrganization: async (parent, {input}, {user}) => {
+      const [organization] = await db('organizations')
+        .where('id', user.organizationId)
+        .update(input)
+        .returning('*');
+      pubsub.publish('organization', {organization});
+      return organization;
+    }
+  }
+};
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: async ({req, connection}) => {
+    if (connection) {
+      return connection.context;
+    }
+    const matches = req.headers.authorization.match(/^bearer (\S+)$/i);
+
+    const {sub} = jwt.verify(matches[1], process.env.JWT_SECRET);
+    socket.user = await db('users')
+      .where('id', sub)
+      .first();
+
+    if (!socket.user) {
+      throw new Error('Invalid token');
+    }
+
+    return {token};
+  },
+  subscriptions: {
+    onConnect: async ({authToken}) => {
+      if (!authToken) {
+        throw new Error('Missing auth token');
+      }
+
+      const {sub} = jwt.verify(authToken, process.env.JWT_SECRET);
+      const user = await db('users')
+        .where('id', sub)
+        .first();
+      if (!user) {
+        throw new Error('Invalid token');
+      }
+
+      return {user};
+    }
+  }
+});
+
+server.applyMiddleware({app});
+
+app.listen({port: process.env.PORT}, () => {
+  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
+});
