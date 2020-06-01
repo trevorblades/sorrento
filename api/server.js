@@ -3,6 +3,8 @@ const http = require('http');
 const twilio = require('twilio');
 const knex = require('knex');
 const cors = require('cors');
+const expand = require('expand-template')();
+const pluralize = require('pluralize');
 const basicAuth = require('basic-auth');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -33,14 +35,15 @@ const io = require('socket.io')(server, {
   }
 });
 
-function getCustomers() {
+function getCustomers(organizationId) {
   return (
     db('customers')
-      .select('customers.*', {barberName: 'barbers.name'})
-      .leftJoin('barbers', 'barbers.id', '=', 'servedBy')
+      .select('customers.*', {agentName: 'users.name'})
+      .leftJoin('users', 'users.id', '=', 'servedBy')
+      .whereNull('servedAt')
+      .andWhere({organizationId})
       // this works because the Sweden locale uses the ISO 8601 format
-      .where('servedAt', '>', new Date().toLocaleDateString('sv'))
-      .orWhereNull('servedAt')
+      .orWhere('servedAt', '>', new Date().toLocaleDateString('sv'))
   );
 }
 
@@ -51,7 +54,7 @@ app.get('/auth', async (req, res) => {
   const credentials = basicAuth(req);
 
   try {
-    const user = await db('barbers')
+    const user = await db('users')
       .where('username', credentials.name)
       .first();
 
@@ -70,13 +73,17 @@ app.get('/auth', async (req, res) => {
 });
 
 app.post('/sms', async (req, res) => {
-  const REMOVE_KEYWORD = 'REMOVE';
   const twiml = new twilio.twiml.MessagingResponse();
 
-  if (req.body.Body === REMOVE_KEYWORD) {
+  const organization = await db('organizations')
+    .where('phone', req.body.To)
+    .first();
+
+  if (req.body.Body === organization.keyword) {
     const condition = {
       servedAt: null,
-      phone: req.body.From
+      phone: req.body.From,
+      organizationId: organization.id
     };
 
     const matches = await db('customers').where(condition);
@@ -86,60 +93,50 @@ app.post('/sms', async (req, res) => {
         .where(condition)
         .del();
 
-      twiml.message('You have been removed from the list.');
+      twiml.message(organization.removedMessage);
 
-      const customers = await getCustomers();
+      const customers = await getCustomers(organization.id);
       io.emit('data', {customers});
     } else {
-      twiml.message('You are not on the list.');
+      twiml.message(organization.notRemovedMessage);
     }
   } else {
-    const accept = await db('settings')
-      .where('key', 'accept')
-      .first();
-
-    if (accept.value) {
+    if (organization.accepting) {
       await db('customers').insert({
         name: req.body.Body,
-        phone: req.body.From
+        phone: req.body.From,
+        organizationId: organization.id
       });
 
-      const customers = await getCustomers();
+      const customers = await getCustomers(organization.id);
       const queue = customers.filter(customer => !customer.servedAt);
 
-      const messages = ['Hello! You are on the list.'];
-      if (queue.length > 1) {
-        const AVERAGE_HANDLE_TIME = 40;
-        const ACTIVE_AGENTS = 3;
-
-        // this value is calculated based on an EWT equation found here
-        // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
-        const peopleAhead = queue.length - 1;
-        const estimatedWaitTime = Math.round(
-          (AVERAGE_HANDLE_TIME * peopleAhead) / ACTIVE_AGENTS
-        );
-
-        messages.push(
-          `There ${
-            peopleAhead === 1 ? 'is 1 person' : `are ${peopleAhead} people`
-          } ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
-        );
-      } else {
-        messages.push('There is nobody ahead of you.');
-      }
-
-      messages.push(
-        `We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list.`
+      // this value is calculated based on an EWT equation found here
+      // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
+      const peopleAhead = queue.length - 1;
+      const estimatedWaitTime = Math.round(
+        (organization.averageHandleTime * peopleAhead) /
+          organization.activeAgents
       );
 
-      twiml.message(messages.join(' '));
+      const message = expand(organization.welcomeMessage, {
+        QUEUE_MESSAGE:
+          queue.length > 1
+            ? expand(organization.queueMessage, {
+                IS: pluralize('is', peopleAhead),
+                PERSON: pluralize(organization.person, peopleAhead, true),
+                ESTIMATED_WAIT_TIME: estimatedWaitTime
+              })
+            : organization.queueEmptyMessage,
+        KEYWORD: organization.keyword
+      });
+
+      twiml.message(message);
 
       // broadcast new customer list to all connected clients
       io.emit('data', {customers});
     } else {
-      twiml.message(
-        'We have stopped accepting customers for today. Visit https://sorrentobarbers.com for our store hours.'
-      );
+      twiml.message(organization.notAcceptingMessage);
     }
   }
 
@@ -155,7 +152,7 @@ io.use(async (socket, next) => {
     );
 
     const {sub} = jwt.verify(matches[1], process.env.JWT_SECRET);
-    socket.user = await db('barbers')
+    socket.user = await db('users')
       .where('id', sub)
       .first();
 
@@ -170,57 +167,64 @@ io.use(async (socket, next) => {
 });
 
 io.on('connection', async socket => {
-  socket.on('serve', async data => {
-    const customer = await db('customers')
-      .where('id', data.id)
-      .first();
+  const {id: userId, organizationId} = socket.user;
 
-    const message = await client.messages.create({
-      body:
-        'Your barber is ready to serve you! Please head over to Sorrento to meet your barber.',
-      from: '+16043308137',
-      to: customer.phone
-    });
+  socket
+    .join(organizationId, async () => {
+      const customers = await getCustomers(organizationId);
+      const [isAccepting] = await db('organizations')
+        .where('id', organizationId)
+        .pluck('accepting');
 
-    await db('customers')
-      .where('id', data.id)
-      .update({
-        receipt: message.sid,
-        servedAt: new Date(),
-        servedBy: socket.user.id
+      // send initial state back to specific client on connection
+      socket.emit('data', {
+        customers,
+        isAccepting
+      });
+    })
+    .on('serve', async id => {
+      const customer = await db('customers')
+        .where({id})
+        .first();
+      // TODO: verify that customer is part of org/exists
+
+      const organization = await db('organizations')
+        .where('id', organizationId)
+        .first();
+
+      const message = await client.messages.create({
+        body: organization.readyMessage,
+        from: organization.phone,
+        to: customer.phone
       });
 
-    const customers = await getCustomers();
-    io.emit('data', {customers});
-  });
+      await db('customers')
+        .where({id})
+        .update({
+          receipt: message.sid,
+          servedAt: new Date(),
+          servedBy: userId
+        });
 
-  socket.on('remove', async data => {
-    await db('customers')
-      .where('id', data.id)
-      .del();
+      const customers = await getCustomers(organizationId);
+      io.emit('data', {customers});
+    })
+    .on('remove', async id => {
+      // TODO: verify that customer is part of org/exists
+      await db('customers')
+        .where({id})
+        .del();
 
-    const customers = await getCustomers();
-    io.emit('data', {customers});
-  });
-
-  socket.on('accept', async data => {
-    const [isAccepting] = await db('settings')
-      .where('key', 'accept')
-      .update('value', data.value)
-      .returning('value');
-    io.emit('data', {isAccepting});
-  });
-
-  const customers = await getCustomers();
-  const accept = await db('settings')
-    .where('key', 'accept')
-    .first();
-
-  // send initial state back to specific client on connection
-  socket.emit('data', {
-    customers,
-    isAccepting: accept.value
-  });
+      const customers = await getCustomers(organizationId);
+      io.emit('data', {customers});
+    })
+    .on('accept', async accepting => {
+      const [isAccepting] = await db('organizations')
+        .where('id', organizationId)
+        .update({accepting})
+        .returning('accepting');
+      io.emit('data', {isAccepting});
+    });
 });
 
 server.listen(process.env.PORT);
