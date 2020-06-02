@@ -1,6 +1,7 @@
 const express = require('express');
-const twilio = require('twilio');
+const {MessagingResponse} = require('twilio').twiml;
 const knex = require('knex');
+const http = require('http');
 const cors = require('cors');
 const expand = require('expand-template')();
 const pluralize = require('pluralize');
@@ -8,20 +9,15 @@ const basicAuth = require('basic-auth');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {
-  ApolloServer,
-  gql,
-  PubSub,
-  AuthenticationError
-} = require('apollo-server-express');
+  typeDefs,
+  resolvers,
+  pubsub,
+  CUSTOMER_UPDATED,
+  CUSTOMER_REMOVED
+} = require('./schema');
+const {ApolloServer, AuthenticationError} = require('apollo-server-express');
 
 const db = knex(process.env.DATABASE_URL);
-
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-const pubsub = new PubSub();
 const app = express();
 
 const origin =
@@ -55,7 +51,7 @@ app.get('/auth', async (req, res) => {
 });
 
 app.post('/sms', async (req, res) => {
-  const twiml = new twilio.twiml.MessagingResponse();
+  const twiml = new MessagingResponse();
 
   const organization = await db('organizations')
     .where('phone', req.body.To)
@@ -77,16 +73,13 @@ app.post('/sms', async (req, res) => {
         .returning('*');
 
       twiml.message(organization.removedMessage);
-      pubsub.publish('customer', {
-        mutation: 'DELETE',
-        data: customer
-      });
+      pubsub.publish(CUSTOMER_REMOVED, customer);
     } else {
       twiml.message(organization.notRemovedMessage);
     }
   } else {
     if (organization.accepting) {
-      const [customer] = await db('customers')
+      const [customerAdded] = await db('customers')
         .insert({
           name: req.body.Body,
           phone: req.body.From,
@@ -121,10 +114,7 @@ app.post('/sms', async (req, res) => {
       twiml.message(message);
 
       // broadcast new customer list to all connected clients
-      pubsub.publish('customer', {
-        mutation: 'CREATE',
-        data: customer
-      });
+      pubsub.publish(CUSTOMER_UPDATED, {customerAdded});
     } else {
       twiml.message(organization.notAcceptingMessage);
     }
@@ -134,114 +124,6 @@ app.post('/sms', async (req, res) => {
   res.writeHead(200, {'Content-Type': 'text/xml'});
   res.end(twiml.toString());
 });
-
-const typeDefs = gql`
-  type Query {
-    customers: [Customer!]!
-  }
-
-  type Subscription {
-    customer: CustomerSubscriptionPayload!
-    organization: Organization!
-  }
-
-  type CustomerSubscriptionPayload {
-    mutation: String!
-    customer: Customer!
-  }
-
-  type Mutation {
-    serveCustomer(id: ID!): Customer!
-    deleteCustomer(id: ID!): Customer!
-    updateOrganization(input: UpdateOrganizationInput!): Organization!
-  }
-
-  input UpdateOrganizationInput {
-    accepting: Boolean
-  }
-
-  type Customer {
-    id: ID!
-    name: String!
-  }
-
-  type Organization {
-    id: ID!
-    accepting: Boolean!
-  }
-`;
-
-const resolvers = {
-  Query: {
-    customers: (parent, args, {db, user}) =>
-      db('customers').where('organizationId', user.organizationId)
-  },
-  Subscription: {
-    customer: {
-      subscribe: () => pubsub.asyncIterator('customer')
-    },
-    organization: {
-      subscribe: () => pubsub.asyncIterator('organization')
-    }
-  },
-  Mutation: {
-    serveCustomer: async (parent, args, {user}) => {
-      const [to] = await db('customers')
-        .where(args)
-        // TODO: verify that customer is part of org/exists
-        .pluck('phone');
-
-      const organization = await db('organizations')
-        .where('id', user.organizationId)
-        .first();
-
-      const message = await client.messages.create({
-        body: organization.readyMessage,
-        from: organization.phone,
-        to
-      });
-
-      const [customer] = await db('customers')
-        .where(args)
-        .update({
-          receipt: message.sid,
-          servedAt: new Date(),
-          servedBy: user.id
-        })
-        .returning('*');
-
-      pubsub.publish('customer', {
-        mutation: 'UPDATE',
-        data: customer
-      });
-
-      return customer;
-    },
-    deleteCustomer: async (parent, args, {user}) => {
-      const [customer] = await db('customers')
-        .where(args)
-        // TODO: verify that customer is part of org/exists
-        .andWhere('organizationId', user.organizationId)
-        .del()
-        .returning('*');
-
-      pubsub.publish('customer', {
-        mutation: 'DELETE',
-        data: customer
-      });
-
-      return customer;
-    },
-    updateOrganization: async (parent, {input}, {user}) => {
-      const [organization] = await db('organizations')
-        .where('id', user.organizationId)
-        .update(input)
-        .returning('*');
-      pubsub.publish('organization', organization);
-      return organization;
-    }
-  }
-};
 
 const server = new ApolloServer({
   typeDefs,
@@ -260,7 +142,10 @@ const server = new ApolloServer({
         throw new Error('Invalid token');
       }
 
-      return {user};
+      return {
+        db,
+        user
+      };
     }
   },
   context: async ({req, connection}) => {
@@ -278,13 +163,19 @@ const server = new ApolloServer({
       throw new AuthenticationError('Unauthorized');
     }
 
-    return {user};
+    return {
+      db,
+      user
+    };
   }
 });
 
 server.applyMiddleware({app});
 
-app.listen({port: process.env.PORT}, () => {
+const httpServer = http.createServer(app);
+server.installSubscriptionHandlers(httpServer);
+
+httpServer.listen(process.env.PORT, () => {
   console.log(
     `🚀 Server ready at http://localhost:${process.env.PORT}${server.graphqlPath}`
   );

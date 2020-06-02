@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import Timer from './timer';
+import useEffectOnce from 'react-use/lib/useEffectOnce';
 import {
   Avatar,
   Box,
@@ -16,6 +17,7 @@ import {
 import {DarkButton, LOGO_HEIGHT, LOGO_MARGIN} from '../utils';
 import {FaArrowRight} from 'react-icons/fa';
 import {format} from 'date-fns';
+import {gql, useMutation} from '@apollo/client';
 
 function PanelHeading(props) {
   return (
@@ -77,8 +79,75 @@ UserAvatar.propTypes = {
 
 const PANEL_PADDING = [6, 8, 10];
 
+const UPDATE_ORGANIZATION = gql`
+  mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+    updateOrganization(input: $input) {
+      id
+      accepting
+    }
+  }
+`;
+
+function AcceptingSwitch(props) {
+  const [updateOrganization, {loading}] = useMutation(UPDATE_ORGANIZATION);
+
+  function handleChange(event) {
+    if (
+      event.target.checked ||
+      confirm('Are you sure you want to stop accepting customers?')
+    ) {
+      updateOrganization({
+        variables: {
+          input: {
+            accepting: event.target.checked
+          }
+        }
+      });
+    }
+  }
+
+  return (
+    <>
+      <Text ml="auto" mr="2" as="label" htmlFor="accepting">
+        Accepting{' '}
+        <Box
+          as="span"
+          display={{
+            base: 'none',
+            md: 'inline'
+          }}
+        >
+          customers
+        </Box>
+      </Text>
+      <Switch
+        display="flex"
+        id="accepting"
+        isDisabled={loading}
+        onChange={handleChange}
+        {...props}
+      />
+    </>
+  );
+}
+
 export default function AppInner(props) {
-  const {customers, isAccepting} = props.data;
+  const {user, customers, organization} = props.data;
+
+  useEffectOnce(() =>
+    // subscribeToMore returns a function to unsubscribe
+    // we implicitly return subscribeToMore() to cleanup on unmount
+    props.subscribeToMore({
+      document: gql`
+        subscription OnOrganizationUpdated {
+          organizationUpdated {
+            id
+            accepting
+          }
+        }
+      `
+    })
+  );
 
   const waitingCustomers = useMemo(
     () =>
@@ -100,15 +169,6 @@ export default function AppInner(props) {
     props.socket.emit('serve', waitingCustomers[0].id);
   }
 
-  function handleAcceptingChange(event) {
-    if (
-      event.target.checked ||
-      confirm('Are you sure you want to stop accepting customers?')
-    ) {
-      props.socket.emit('accept', event.target.checked);
-    }
-  }
-
   return (
     <Grid
       templateColumns={{
@@ -127,26 +187,9 @@ export default function AppInner(props) {
             justify="flex-end"
           >
             <Box display={{lg: 'none'}}>
-              <UserAvatar user={props.user} />
+              <UserAvatar user={user} />
             </Box>
-            <Text ml="auto" mr="2" as="label" htmlFor="accepting">
-              Accepting{' '}
-              <Box
-                as="span"
-                display={{
-                  base: 'none',
-                  md: 'inline'
-                }}
-              >
-                customers
-              </Box>
-            </Text>
-            <Switch
-              display="flex"
-              id="accepting"
-              isChecked={isAccepting}
-              onChange={handleAcceptingChange}
-            />
+            <AcceptingSwitch isChecked={organization.accepting} />
           </Flex>
           <PanelHeading>Waiting</PanelHeading>
           <List spacing="6">
@@ -220,7 +263,7 @@ export default function AppInner(props) {
         }}
       >
         <Flex flexShrink="0" h={LOGO_HEIGHT} my={LOGO_MARGIN} align="center">
-          <UserAvatar user={props.user} />
+          <UserAvatar user={user} />
         </Flex>
         {servedCustomers.length ? (
           <>
@@ -253,7 +296,6 @@ export default function AppInner(props) {
 }
 
 AppInner.propTypes = {
-  socket: PropTypes.object.isRequired,
-  data: PropTypes.object.isRequired,
-  user: PropTypes.object.isRequired
+  subscribeToMore: PropTypes.func.isRequired,
+  data: PropTypes.object.isRequired
 };
