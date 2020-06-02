@@ -1,8 +1,8 @@
 import React from 'react';
 import logo from '../assets/logo.svg';
-import {Box, Flex, Heading, PseudoBox, Text} from '@chakra-ui/core';
+import {Box, Flex, Heading, Text} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
-import {graphql, useStaticQuery} from 'gatsby';
+// import {graphql, useStaticQuery} from 'gatsby';
 
 function HomePageHeading(props) {
   return (
@@ -11,19 +11,21 @@ function HomePageHeading(props) {
 }
 
 export default function Home() {
-  const {allInstaNode} = useStaticQuery(
-    graphql`
-      {
-        allInstaNode(sort: {order: DESC, fields: timestamp}) {
-          nodes {
-            original
-            id
-            timestamp
-          }
-        }
-      }
-    `
-  );
+  // FIXME: uncomment when issue below is addressed
+  // https://github.com/oorestisime/gatsby-source-instagram/issues/24
+  // const {allInstaNode} = useStaticQuery(
+  //   graphql`
+  //     {
+  //       allInstaNode(sort: {order: DESC, fields: timestamp}) {
+  //         nodes {
+  //           original
+  //           id
+  //           timestamp
+  //         }
+  //       }
+  //     }
+  //   `
+  // );
 
   return (
     <>
@@ -55,7 +57,7 @@ export default function Home() {
           Text your name to (604) 330-8137
         </HomePageHeading>
       </Box>
-      <Flex h="500px" overflow="hidden" bg="black">
+      {/* <Flex h="500px" overflow="hidden" bg="black">
         {allInstaNode.nodes.map(instaNode => (
           <PseudoBox
             as="a"
@@ -71,7 +73,7 @@ export default function Home() {
             <Box as="img" h="full" loading="lazy" src={instaNode.original} />
           </PseudoBox>
         ))}
-      </Flex>
+      </Flex> */}
       <Box p="20" textAlign="center">
         <Text fontSize="2xl">
           &copy; {new Date().getFullYear()} Sorrento Barbers
