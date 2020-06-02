@@ -153,7 +153,7 @@ const typeDefs = gql`
   type Mutation {
     serveCustomer(id: ID!): Customer!
     deleteCustomer(id: ID!): Customer!
-    updateOrganization($input: UpdateOrganizationInput!): Organization!
+    updateOrganization(input: UpdateOrganizationInput!): Organization!
   }
 
   input UpdateOrganizationInput {
