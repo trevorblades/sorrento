@@ -31,7 +31,13 @@ function PanelHeading(props) {
 
 function PanelListItem({title, subtitle, children, ...props}) {
   return (
-    <Flex as={ListItem} justify="space-between" align="center" {...props}>
+    <Flex
+      as={ListItem}
+      direction={['column', 'row']}
+      justify="space-between"
+      align={['flex-start', 'center']}
+      {...props}
+    >
       <div>
         <Text lineHeight="normal" fontSize="2xl" fontWeight="medium">
           {title}
@@ -40,7 +46,9 @@ function PanelListItem({title, subtitle, children, ...props}) {
           {subtitle}
         </Text>
       </div>
-      <Box flexShrink="0">{children}</Box>
+      <Box mt={[2, 0]} flexShrink="0">
+        {children}
+      </Box>
     </Flex>
   );
 }
@@ -124,7 +132,10 @@ export default function AppInner(props) {
             h={LOGO_HEIGHT}
             my={LOGO_MARGIN}
             align="center"
-            justify="flex-end"
+            position="sticky"
+            top="0"
+            bg="white"
+            zIndex="sticky"
           >
             <Box display={{lg: 'none'}}>
               <UserAvatar user={props.user} />
