@@ -79,42 +79,45 @@ app.post('/sms', async (req, res) => {
     }
   } else {
     if (organization.accepting) {
-      const [customerAdded] = await db('customers')
-        .insert({
-          name: req.body.Body,
-          phone: req.body.From,
-          organizationId: organization.id
-        })
-        .returning('*');
-
-      const customers = await db('customers')
+      const {count: peopleAhead} = await db('customers')
+        .count('id')
         .whereNull('servedAt')
-        .andWhere('organizationId', organization.id);
+        .andWhere('organizationId', organization.id)
+        .first();
 
-      // this value is calculated based on an EWT equation found here
-      // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
-      const peopleAhead = customers.length - 1;
-      const estimatedWaitTime = Math.round(
-        (organization.averageHandleTime * peopleAhead) /
-          organization.activeAgents
-      );
+      if (peopleAhead < organization.queueLimit) {
+        // this value is calculated based on an EWT equation found here
+        // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
+        const estimatedWaitTime = Math.round(
+          (organization.averageHandleTime * peopleAhead) /
+            organization.activeAgents
+        );
 
-      const message = expand(organization.welcomeMessage, {
-        QUEUE_MESSAGE:
-          customers.length > 1
+        const message = expand(organization.welcomeMessage, {
+          QUEUE_MESSAGE: peopleAhead
             ? expand(organization.queueMessage, {
                 IS: pluralize('is', peopleAhead),
                 PERSON: pluralize(organization.person, peopleAhead, true),
                 ESTIMATED_WAIT_TIME: estimatedWaitTime
               })
             : organization.queueEmptyMessage,
-        KEYWORD: organization.keyword
-      });
+          KEYWORD: organization.keyword
+        });
 
-      twiml.message(message);
+        twiml.message(message);
 
-      // broadcast new customer list to all connected clients
-      pubsub.publish(CUSTOMER_UPDATED, {customerAdded});
+        const [customerAdded] = await db('customers')
+          .insert({
+            name: req.body.Body,
+            phone: req.body.From,
+            organizationId: organization.id
+          })
+          .returning('*');
+
+        pubsub.publish(CUSTOMER_UPDATED, {customerAdded});
+      } else {
+        twiml.message(organization.limitExceededMessage);
+      }
     } else {
       twiml.message(organization.notAcceptingMessage);
     }

@@ -64,7 +64,13 @@ function LoginForm(props) {
             {error}
           </Text>
         )}
-        <Input size="lg" isRequired placeholder="Username" name="username" />
+        <Input
+          size="lg"
+          autoFocus
+          isRequired
+          placeholder="Username"
+          name="username"
+        />
         <Input
           size="lg"
           isRequired

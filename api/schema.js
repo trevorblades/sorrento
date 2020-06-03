@@ -19,7 +19,7 @@ exports.typeDefs = gql`
 
   type Mutation {
     serveCustomer(id: ID!): Customer!
-    deleteCustomer(id: ID!): Customer!
+    removeCustomer(id: ID!): Customer!
     updateOrganization(input: UpdateOrganizationInput!): Organization!
   }
 
@@ -32,11 +32,17 @@ exports.typeDefs = gql`
     name: String!
     waitingSince: DateTime!
     servedAt: DateTime
+    servedBy: User
   }
 
   type Organization {
     id: ID!
     accepting: Boolean!
+  }
+
+  type User {
+    id: ID!
+    name: String!
   }
 `;
 
@@ -114,7 +120,7 @@ exports.resolvers = {
 
       return customerUpdated;
     },
-    deleteCustomer: async (parent, args, {db, user}) => {
+    removeCustomer: async (parent, args, {db, user}) => {
       const [customerRemoved] = await db('customers')
         .where(args)
         // TODO: verify that customer is part of org/exists
@@ -136,5 +142,12 @@ exports.resolvers = {
 
       return organizationUpdated;
     }
+  },
+  Customer: {
+    servedBy: (customer, args, {db}) =>
+      customer.servedBy &&
+      db('users')
+        .where('id', customer.servedBy)
+        .first()
   }
 };

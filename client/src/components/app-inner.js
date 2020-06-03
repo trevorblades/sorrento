@@ -14,7 +14,14 @@ import {
   Switch,
   Text
 } from '@chakra-ui/core';
-import {DarkButton, LOGO_HEIGHT, LOGO_MARGIN} from '../utils';
+import {
+  CUSTOMER_FRAGMENT,
+  DarkButton,
+  LOGO_HEIGHT,
+  LOGO_MARGIN,
+  ORGANIZATION_FRAGMENT
+} from '../utils';
+
 import {FaArrowRight} from 'react-icons/fa';
 import {format} from 'date-fns';
 import {gql, useMutation} from '@apollo/client';
@@ -77,15 +84,119 @@ UserAvatar.propTypes = {
   user: PropTypes.object.isRequired
 };
 
+const SERVE_CUSTOMER = gql`
+  mutation ServeCustomer($id: ID!) {
+    serveCustomer(id: $id) {
+      ...CustomerFragment
+    }
+  }
+  ${CUSTOMER_FRAGMENT}
+`;
+
+function ServeButton(props) {
+  const [serveCustomer, {loading}] = useMutation(SERVE_CUSTOMER, {
+    variables: {
+      id: props.customer.id
+    }
+  });
+
+  return (
+    <DarkButton isLoading={loading} mr="3" onClick={serveCustomer}>
+      Serve
+    </DarkButton>
+  );
+}
+
+ServeButton.propTypes = {
+  customer: PropTypes.object.isRequired
+};
+
+function NextButton({mutationOptions, ...props}) {
+  const [nextCustomer, {loading}] = useMutation(
+    SERVE_CUSTOMER,
+    mutationOptions
+  );
+
+  return (
+    <DarkButton
+      mt="auto"
+      w="full"
+      rounded="none"
+      h="100px"
+      fontSize="3xl"
+      position="sticky"
+      bottom="0"
+      textTransform="uppercase"
+      rightIcon={FaArrowRight}
+      isLoading={loading}
+      onClick={nextCustomer}
+      {...props}
+    >
+      <span>
+        Next{' '}
+        <Box
+          as="span"
+          display={{
+            display: 'none',
+            md: 'inline'
+          }}
+        >
+          customer
+        </Box>
+      </span>
+    </DarkButton>
+  );
+}
+
+NextButton.propTypes = {
+  mutationOptions: PropTypes.object.isRequired
+};
+
+const REMOVE_CUSTOMER = gql`
+  mutation RemoveCustomer($id: ID!) {
+    removeCustomer(id: $id) {
+      ...CustomerFragment
+    }
+  }
+  ${CUSTOMER_FRAGMENT}
+`;
+
+function RemoveButton(props) {
+  const [removeCustomer, {loading}] = useMutation(REMOVE_CUSTOMER, {
+    variables: {
+      id: props.customer.id
+    }
+  });
+
+  return (
+    <Button
+      isLoading={loading}
+      onClick={() => {
+        if (
+          confirm(`Are you sure you want to remove "${props.customer.name}"?`)
+        ) {
+          removeCustomer();
+        }
+      }}
+    >
+      Remove
+    </Button>
+  );
+}
+
+RemoveButton.propTypes = {
+  customer: PropTypes.object.isRequired
+};
+
 const PANEL_PADDING = [6, 8, 10];
 
 const UPDATE_ORGANIZATION = gql`
   mutation UpdateOrganization($input: UpdateOrganizationInput!) {
     updateOrganization(input: $input) {
-      id
-      accepting
+      ...OrganizationFragment
     }
   }
+  ${ORGANIZATION_FRAGMENT}
 `;
 
 function AcceptingSwitch(props) {
@@ -165,10 +276,6 @@ export default function AppInner(props) {
     [customers]
   );
 
-  function handleNextClick() {
-    props.socket.emit('serve', waitingCustomers[0].id);
-  }
-
   return (
     <Grid
       templateColumns={{
@@ -199,55 +306,20 @@ export default function AppInner(props) {
                 title={`${index + 1}. ${customer.name}`}
                 subtitle={<Timer date={new Date(customer.waitingSince)} />}
               >
-                <DarkButton
-                  mr="3"
-                  onClick={() => props.socket.emit('serve', customer.id)}
-                >
-                  Serve
-                </DarkButton>
-                <Button
-                  onClick={() => {
-                    if (
-                      confirm(
-                        `Are you sure you want to remove "${customer.name}"?`
-                      )
-                    ) {
-                      props.socket.emit('remove', customer.id);
-                    }
-                  }}
-                >
-                  Remove
-                </Button>
+                <ServeButton customer={customer} />
+                <RemoveButton customer={customer} />
               </PanelListItem>
             ))}
           </List>
         </Box>
-        <DarkButton
-          mt="auto"
-          w="full"
-          rounded="none"
-          h="100px"
-          fontSize="3xl"
-          position="sticky"
-          bottom="0"
-          textTransform="uppercase"
-          rightIcon={FaArrowRight}
-          disabled={!waitingCustomers.length}
-          onClick={handleNextClick}
-        >
-          <span>
-            Next{' '}
-            <Box
-              as="span"
-              display={{
-                display: 'none',
-                md: 'inline'
-              }}
-            >
-              customer
-            </Box>
-          </span>
-        </DarkButton>
+        <NextButton
+          isDisabled={!waitingCustomers.length}
+          mutationOptions={{
+            variables: {
+              id: waitingCustomers[0]?.id
+            }
+          }}
+        />
       </Flex>
       <Box
         h="100vh"
@@ -273,7 +345,7 @@ export default function AppInner(props) {
                 <PanelListItem
                   key={customer.id}
                   title={customer.name}
-                  subtitle={`Served by ${customer.agentName}`}
+                  subtitle={`Served by ${customer.servedBy.name}`}
                 >
                   <Text color="gray.500">
                     {format(new Date(customer.servedAt), 'p')}

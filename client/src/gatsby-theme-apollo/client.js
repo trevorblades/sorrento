@@ -15,18 +15,6 @@ const httpLink = new HttpLink({
   fetch
 });
 
-const wsLink = process.browser
-  ? new WebSocketLink({
-      uri: 'ws://localhost:4000/graphql',
-      options: {
-        reconnect: true,
-        connectionParams: () => ({
-          authToken: localStorage.getItem('sorrento:token')
-        })
-      }
-    })
-  : null;
-
 const authLink = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem('sorrento:token');
   if (token) {
@@ -38,23 +26,31 @@ const authLink = new ApolloLink((operation, forward) => {
   }
 
   return forward(operation);
-}).concat(httpLink);
-
-const splitLink = split(
-  ({query}) => {
-    const definition = getMainDefinition(query);
-    return (
-      definition.kind === 'OperationDefinition' &&
-      definition.operation === 'subscription'
-    );
-  },
-  wsLink,
-  authLink
-);
+});
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
-  link: process.browser ? splitLink : authLink,
+  link: process.browser
+    ? split(
+        ({query}) => {
+          const definition = getMainDefinition(query);
+          return (
+            definition.kind === 'OperationDefinition' &&
+            definition.operation === 'subscription'
+          );
+        },
+        new WebSocketLink({
+          uri: 'ws://localhost:4000/graphql',
+          options: {
+            reconnect: true,
+            connectionParams: () => ({
+              authToken: localStorage.getItem('sorrento:token')
+            })
+          }
+        }),
+        authLink.concat(httpLink)
+      )
+    : authLink.concat(httpLink),
   resolvers: {
     Query: {
       user() {

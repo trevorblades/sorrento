@@ -1,6 +1,7 @@
 import AppInner from './app-inner';
 import React from 'react';
 import {Box, Spinner, Text} from '@chakra-ui/core';
+import {CUSTOMER_FRAGMENT, ORGANIZATION_FRAGMENT} from '../utils';
 import {gql, useQuery} from '@apollo/client';
 
 export default function App() {
@@ -8,16 +9,14 @@ export default function App() {
     {
       user @client
       customers {
-        id
-        name
-        waitingSince
-        servedAt
+        ...CustomerFragment
       }
       organization {
-        id
-        accepting
+        ...OrganizationFragment
       }
     }
+    ${CUSTOMER_FRAGMENT}
+    ${ORGANIZATION_FRAGMENT}
   `);
 
   if (loading) {
