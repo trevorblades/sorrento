@@ -71,6 +71,8 @@ app.get('/auth', async (req, res) => {
 
 app.post('/sms', async (req, res) => {
   const REMOVE_KEYWORD = 'REMOVE';
+  const QUEUE_LIMIT = 20;
+
   const twiml = new twilio.twiml.MessagingResponse();
 
   if (req.body.Body.toUpperCase() === REMOVE_KEYWORD) {
@@ -99,43 +101,49 @@ app.post('/sms', async (req, res) => {
       .first();
 
     if (accept.value) {
-      await db('customers').insert({
-        name: req.body.Body,
-        phone: req.body.From
-      });
+      const {count: peopleAhead} = await db('customers')
+        .count('id')
+        .whereNull('servedAt')
+        .first();
 
-      const customers = await getCustomers();
-      const queue = customers.filter(customer => !customer.servedAt);
+      if (peopleAhead < QUEUE_LIMIT) {
+        await db('customers').insert({
+          name: req.body.Body,
+          phone: req.body.From
+        });
 
-      const messages = ['Hello! You are on the list.'];
-      if (queue.length > 1) {
-        const AVERAGE_HANDLE_TIME = 40;
-        const ACTIVE_AGENTS = 3;
+        const messages = ['Hello! You are on the list.'];
+        if (peopleAhead > 0) {
+          const AVERAGE_HANDLE_TIME = 40;
+          const ACTIVE_AGENTS = 3;
 
-        // this value is calculated based on an EWT equation found here
-        // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
-        const peopleAhead = queue.length - 1;
-        const estimatedWaitTime = Math.round(
-          (AVERAGE_HANDLE_TIME * peopleAhead) / ACTIVE_AGENTS
-        );
+          // this value is calculated based on an EWT equation found here
+          // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
+          const estimatedWaitTime = Math.round(
+            (AVERAGE_HANDLE_TIME * peopleAhead) / ACTIVE_AGENTS
+          );
+
+          messages.push(
+            `There ${
+              peopleAhead === 1 ? 'is 1 person' : `are ${peopleAhead} people`
+            } ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
+          );
+        } else {
+          messages.push('There is nobody ahead of you.');
+        }
 
         messages.push(
-          `There ${
-            peopleAhead === 1 ? 'is 1 person' : `are ${peopleAhead} people`
-          } ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
+          `We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list.`
         );
+
+        twiml.message(messages.join(' '));
+
+        // broadcast new customer list to all connected clients
+        const customers = await getCustomers();
+        io.emit('data', {customers});
       } else {
-        messages.push('There is nobody ahead of you.');
+        twiml.message('The list is currently full. Please try again later.');
       }
-
-      messages.push(
-        `We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list.`
-      );
-
-      twiml.message(messages.join(' '));
-
-      // broadcast new customer list to all connected clients
-      io.emit('data', {customers});
     } else {
       twiml.message(
         'We have stopped accepting customers for today. Visit https://sorrentobarbers.com for our store hours.'
