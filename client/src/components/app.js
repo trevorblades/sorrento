@@ -118,6 +118,9 @@ export default function App() {
                 {data.organization.name}
               </Button>
               <AcceptingSwitch isChecked={data.organization.accepting} />
+              <Text ml="2">
+                {data.organization.accepting ? 'Open' : 'Closed'}
+              </Text>
             </>
           )
         )}
