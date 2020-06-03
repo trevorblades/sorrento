@@ -110,7 +110,7 @@ export default function App() {
     <>
       <Header>
         {loading ? (
-          <Skeleton w="120px" h="20px" />
+          <Skeleton rounded="md" w="120px" h="8" />
         ) : (
           !error && (
             <>
