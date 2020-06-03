@@ -75,7 +75,7 @@ app.post('/sms', async (req, res) => {
 
   const twiml = new twilio.twiml.MessagingResponse();
 
-  if (req.body.Body.toUpperCase() === REMOVE_KEYWORD) {
+  if (req.body.Body.trim().toUpperCase() === REMOVE_KEYWORD) {
     const condition = {
       servedAt: null,
       phone: req.body.From
