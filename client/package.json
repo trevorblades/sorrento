@@ -12,7 +12,6 @@
     "@emotion/core": "^10.0.28",
     "@emotion/styled": "^10.0.27",
     "@mpth/react-no-ssr": "^1.0.1",
-    "@shopify/react-hooks": "^1.9.1",
     "date-fns": "^2.14.0",
     "emotion-theming": "^10.0.27",
     "gatsby": "^2.21.0",

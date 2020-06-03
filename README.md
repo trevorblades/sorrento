@@ -18,7 +18,9 @@ This project was a collaboration between me and [Ken Taylor](https://github.com/
 
 - React
 - Twilio
-- Socket.io
+- Apollo Client
+- Apollo Server
+- GraphQL Subscriptions
 - Chakra UI
 - Gatsby
 - Express
