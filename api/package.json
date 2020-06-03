@@ -1,12 +1,13 @@
 {
   "scripts": {
-    "start": "nodemon -r dotenv/config server.js"
+    "start": "nodemon -r esm -r dotenv/config server.js"
   },
   "dependencies": {
     "apollo-server-express": "^2.14.1",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "esm": "^3.2.25",
     "expand-template": "^2.0.3",
     "express": "^4.17.1",
     "graphql": "^15.0.0",

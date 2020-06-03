@@ -250,13 +250,45 @@ export default function AppInner(props) {
     // we implicitly return subscribeToMore() to cleanup on unmount
     props.subscribeToMore({
       document: gql`
-        subscription OnOrganizationUpdated {
+        subscription {
           organizationUpdated {
-            id
-            accepting
+            ...OrganizationFragment
           }
         }
+        ${ORGANIZATION_FRAGMENT}
       `
+    })
+  );
+
+  useEffectOnce(() =>
+    props.subscribeToMore({
+      document: gql`
+        subscription {
+          customerServed {
+            ...CustomerFragment
+          }
+        }
+        ${CUSTOMER_FRAGMENT}
+      `
+    })
+  );
+
+  useEffectOnce(() =>
+    props.subscribeToMore({
+      document: gql`
+        subscription {
+          customerRemoved {
+            ...CustomerFragment
+          }
+        }
+        ${CUSTOMER_FRAGMENT}
+      `,
+      updateQuery: (prev, {subscriptionData}) => ({
+        ...prev,
+        customers: prev.customers.filter(
+          customer => customer.id !== subscriptionData.data?.customerRemoved.id
+        )
+      })
     })
   );
 

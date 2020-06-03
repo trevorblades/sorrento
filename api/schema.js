@@ -1,8 +1,8 @@
-const {GraphQLDateTime} = require('graphql-iso-date');
-const {gql, PubSub, withFilter} = require('apollo-server-express');
-const twilio = require('twilio');
+import twilio from 'twilio';
+import {GraphQLDateTime} from 'graphql-iso-date';
+import {PubSub, UserInputError, gql, withFilter} from 'apollo-server-express';
 
-exports.typeDefs = gql`
+export const typeDefs = gql`
   scalar DateTime
 
   type Query {
@@ -10,17 +10,17 @@ exports.typeDefs = gql`
     organization: Organization!
   }
 
-  type Subscription {
-    customerAdded: Customer
-    customerUpdated: Customer
-    customerRemoved: Customer
-    organizationUpdated: Organization
-  }
-
   type Mutation {
     serveCustomer(id: ID!): Customer!
-    removeCustomer(id: ID!): Customer!
+    removeCustomer(id: ID!): Customer
     updateOrganization(input: UpdateOrganizationInput!): Organization!
+  }
+
+  type Subscription {
+    customerAdded: Customer
+    customerServed: Customer
+    customerRemoved: Customer
+    organizationUpdated: Organization
   }
 
   input UpdateOrganizationInput {
@@ -47,22 +47,18 @@ exports.typeDefs = gql`
 `;
 
 const CUSTOMER_ADDED = 'CUSTOMER_ADDED';
-const CUSTOMER_UPDATED = 'CUSTOMER_UPDATED';
-const CUSTOMER_REMOVED = 'CUSTOMER_REMOVED';
+export const CUSTOMER_SERVED = 'CUSTOMER_SERVED';
+export const CUSTOMER_REMOVED = 'CUSTOMER_REMOVED';
 const ORGANIZATION_UPDATED = 'ORGANIZATION_UPDATED';
 
-exports.CUSTOMER_UPDATED;
-exports.CUSTOMER_REMOVED;
-
-const pubsub = new PubSub();
-exports.pubsub = pubsub;
+export const pubsub = new PubSub();
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 
-exports.resolvers = {
+export const resolvers = {
   DateTime: GraphQLDateTime,
   Query: {
     customers: (parent, args, {db, user}) =>
@@ -74,13 +70,25 @@ exports.resolvers = {
   },
   Subscription: {
     customerAdded: {
-      subscribe: () => pubsub.asyncIterator(CUSTOMER_ADDED)
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(CUSTOMER_ADDED),
+        (payload, args, {user}) =>
+          payload.customerAdded.organizationId === user.organizationId
+      )
     },
-    customerUpdated: {
-      subscribe: () => pubsub.asyncIterator(CUSTOMER_UPDATED)
+    customerServed: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(CUSTOMER_SERVED),
+        (payload, args, {user}) =>
+          payload.customerServed.organizationId === user.organizationId
+      )
     },
     customerRemoved: {
-      subscribe: () => pubsub.asyncIterator(CUSTOMER_REMOVED)
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(CUSTOMER_REMOVED),
+        (payload, args, {user}) =>
+          payload.customerRemoved.organizationId === user.organizationId
+      )
     },
     organizationUpdated: {
       subscribe: withFilter(
@@ -94,8 +102,12 @@ exports.resolvers = {
     serveCustomer: async (parent, args, {db, user}) => {
       const [to] = await db('customers')
         .where(args)
-        // TODO: verify that customer is part of org/exists
+        .andWhere('organizationId', user.organizationId)
         .pluck('phone');
+
+      if (!to) {
+        throw new UserInputError('Invalid customer');
+      }
 
       const organization = await db('organizations')
         .where('id', user.organizationId)
@@ -107,7 +119,7 @@ exports.resolvers = {
         to
       });
 
-      const [customerUpdated] = await db('customers')
+      const [customerServed] = await db('customers')
         .where(args)
         .update({
           receipt: message.sid,
@@ -116,17 +128,20 @@ exports.resolvers = {
         })
         .returning('*');
 
-      pubsub.publish(CUSTOMER_UPDATED, {customerUpdated});
+      pubsub.publish(CUSTOMER_SERVED, {customerServed});
 
-      return customerUpdated;
+      return customerServed;
     },
     removeCustomer: async (parent, args, {db, user}) => {
       const [customerRemoved] = await db('customers')
         .where(args)
-        // TODO: verify that customer is part of org/exists
         .andWhere('organizationId', user.organizationId)
         .del()
         .returning('*');
+
+      if (!customerRemoved) {
+        throw new UserInputError('Invalid customer');
+      }
 
       pubsub.publish(CUSTOMER_REMOVED, {customerRemoved});
 

@@ -1,24 +1,25 @@
-const express = require('express');
-const {MessagingResponse} = require('twilio').twiml;
-const knex = require('knex');
-const http = require('http');
-const cors = require('cors');
-const expand = require('expand-template')();
-const pluralize = require('pluralize');
-const basicAuth = require('basic-auth');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const {
-  typeDefs,
-  resolvers,
+import basicAuth from 'basic-auth';
+import bcrypt from 'bcryptjs';
+import cors from 'cors';
+import expand from 'expand-template';
+import express from 'express';
+import http from 'http';
+import jwt from 'jsonwebtoken';
+import knex from 'knex';
+import pluralize from 'pluralize';
+import twilio from 'twilio';
+import {ApolloServer, AuthenticationError} from 'apollo-server-express';
+import {
+  CUSTOMER_REMOVED,
+  CUSTOMER_SERVED,
   pubsub,
-  CUSTOMER_UPDATED,
-  CUSTOMER_REMOVED
-} = require('./schema');
-const {ApolloServer, AuthenticationError} = require('apollo-server-express');
+  resolvers,
+  typeDefs
+} from './schema';
 
 const db = knex(process.env.DATABASE_URL);
 const app = express();
+const template = expand();
 
 const origin =
   process.env.NODE_ENV === 'production'
@@ -51,7 +52,7 @@ app.get('/auth', async (req, res) => {
 });
 
 app.post('/sms', async (req, res) => {
-  const twiml = new MessagingResponse();
+  const twiml = new twilio.twiml.MessagingResponse();
 
   const organization = await db('organizations')
     .where('phone', req.body.To)
@@ -67,13 +68,13 @@ app.post('/sms', async (req, res) => {
     const matches = await db('customers').where(condition);
 
     if (matches.length) {
-      const [customer] = await db('customers')
+      const [customerRemoved] = await db('customers')
         .where(condition)
         .del()
         .returning('*');
 
       twiml.message(organization.removedMessage);
-      pubsub.publish(CUSTOMER_REMOVED, customer);
+      pubsub.publish(CUSTOMER_REMOVED, {customerRemoved});
     } else {
       twiml.message(organization.notRemovedMessage);
     }
@@ -93,9 +94,9 @@ app.post('/sms', async (req, res) => {
             organization.activeAgents
         );
 
-        const message = expand(organization.welcomeMessage, {
+        const message = template(organization.welcomeMessage, {
           QUEUE_MESSAGE: peopleAhead
-            ? expand(organization.queueMessage, {
+            ? template(organization.queueMessage, {
                 IS: pluralize('is', peopleAhead),
                 PERSON: pluralize(organization.person, peopleAhead, true),
                 ESTIMATED_WAIT_TIME: estimatedWaitTime
@@ -106,7 +107,7 @@ app.post('/sms', async (req, res) => {
 
         twiml.message(message);
 
-        const [customerAdded] = await db('customers')
+        const [customerServed] = await db('customers')
           .insert({
             name: req.body.Body,
             phone: req.body.From,
@@ -114,7 +115,7 @@ app.post('/sms', async (req, res) => {
           })
           .returning('*');
 
-        pubsub.publish(CUSTOMER_UPDATED, {customerAdded});
+        pubsub.publish(CUSTOMER_SERVED, {customerServed});
       } else {
         twiml.message(organization.limitExceededMessage);
       }
