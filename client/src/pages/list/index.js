@@ -73,6 +73,7 @@ export default function List() {
               bg="red.500"
               position="sticky"
               top="0"
+              zIndex="sticky"
             >
               <Box
                 as="img"

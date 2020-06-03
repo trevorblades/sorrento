@@ -33,9 +33,15 @@ function PanelListItem({title, subtitle, children, ...props}) {
   return (
     <Flex
       as={ListItem}
-      direction={['column', 'row']}
+      direction={{
+        base: 'column',
+        md: 'row'
+      }}
       justify="space-between"
-      align={['flex-start', 'center']}
+      align={{
+        base: 'flex-start',
+        md: 'center'
+      }}
       {...props}
     >
       <div>
@@ -46,7 +52,13 @@ function PanelListItem({title, subtitle, children, ...props}) {
           {subtitle}
         </Text>
       </div>
-      <Box mt={[2, 0]} flexShrink="0">
+      <Box
+        mt={{
+          base: 2,
+          md: 0
+        }}
+        flexShrink="0"
+      >
         {children}
       </Box>
     </Flex>
@@ -135,7 +147,7 @@ export default function AppInner(props) {
             position="sticky"
             top="0"
             bg="white"
-            zIndex="sticky"
+            zIndex="docked"
           >
             <Box display={{lg: 'none'}}>
               <UserAvatar user={props.user} />
