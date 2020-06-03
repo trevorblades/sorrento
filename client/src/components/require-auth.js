@@ -1,18 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
-import icon from '../assets/icon.svg';
-import logo from '../assets/logo.svg';
-import {
-  Box,
-  Flex,
-  IconButton,
-  Input,
-  Stack,
-  Text,
-  Tooltip
-} from '@chakra-ui/core';
-import {DarkButton, LOGO_HEIGHT, LOGO_MARGIN} from '../utils';
-import {FaHistory, FaListOl, FaSignOutAlt} from 'react-icons/fa';
+import {DarkButton, UserContext} from '../utils';
+import {Flex, IconButton, Input, Stack, Text, Tooltip} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
 import {gql, useQuery} from '@apollo/client';
 
@@ -57,7 +46,6 @@ function LoginForm(props) {
       autoComplete="off"
       onSubmit={handleSubmit}
     >
-      <Box as="img" src={logo} h="20" mb="20" />
       <Stack spacing="4" w="full" maxW={{md: 480}}>
         {error && (
           <Text textAlign="center" fontWeight="bold">
@@ -128,61 +116,22 @@ export default function RequireAuth(props) {
 
   if (data?.user) {
     return (
-      <Flex>
-        <Helmet>
-          <title>Logged in as {data.user.name}</title>
-        </Helmet>
-        <Box
-          as="aside"
-          w={{
-            base: '64px',
-            lg: '72px'
-          }}
-          h="100vh"
-          textAlign="center"
-          bg="red.500"
-          position="sticky"
-          top="0"
-        >
-          <Box
-            as="img"
-            src={logo}
-            h={LOGO_HEIGHT}
-            maxW="none"
-            m={LOGO_MARGIN}
-            display={{
-              base: 'none',
-              lg: 'block'
-            }}
-          />
-          <Box
-            as="img"
-            src={icon}
-            h={LOGO_HEIGHT}
-            my={LOGO_MARGIN}
-            mx="auto"
-            display={{lg: 'none'}}
-          />
-          <Stack mt="8" align="center" spacing="4">
-            <SidebarButton icon={FaListOl} label="Waitlist" isSelected />
-            <SidebarButton icon={FaHistory} label="Customer history" />
-            <SidebarButton
-              icon={FaSignOutAlt}
-              onClick={() => {
-                localStorage.removeItem('sorrento:token');
-                client.writeQuery({
-                  query: GET_USER,
-                  data: {
-                    user: null
-                  }
-                });
-              }}
-              label="Log out"
-            />
-          </Stack>
-        </Box>
+      <UserContext.Provider
+        value={{
+          user: data.user,
+          logOut() {
+            localStorage.removeItem('sorrento:token');
+            client.writeQuery({
+              query: GET_USER,
+              data: {
+                user: null
+              }
+            });
+          }
+        }}
+      >
         {props.children}
-      </Flex>
+      </UserContext.Provider>
     );
   }
 

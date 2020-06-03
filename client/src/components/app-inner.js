@@ -3,7 +3,6 @@ import React, {useMemo} from 'react';
 import Timer from './timer';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
 import {
-  Avatar,
   Box,
   Button,
   Flex,
@@ -11,17 +10,9 @@ import {
   Heading,
   List,
   ListItem,
-  Switch,
   Text
 } from '@chakra-ui/core';
-import {
-  CUSTOMER_FRAGMENT,
-  DarkButton,
-  LOGO_HEIGHT,
-  LOGO_MARGIN,
-  ORGANIZATION_FRAGMENT
-} from '../utils';
-
+import {CUSTOMER_FRAGMENT, DarkButton, ORGANIZATION_FRAGMENT} from '../utils';
 import {FaArrowRight} from 'react-icons/fa';
 import {format} from 'date-fns';
 import {gql, useMutation} from '@apollo/client';
@@ -58,30 +49,6 @@ PanelListItem.propTypes = {
   title: PropTypes.string.isRequired,
   subtitle: PropTypes.node.isRequired,
   children: PropTypes.node.isRequired
-};
-
-function UserAvatar(props) {
-  return (
-    <>
-      <Avatar mr="2" fontSize="sm" size="xs" name={props.user.name} />
-      <span>
-        <Box
-          as="span"
-          display={{
-            base: 'none',
-            md: 'inline'
-          }}
-        >
-          Logged in as{' '}
-        </Box>
-        {props.user.name}
-      </span>
-    </>
-  );
-}
-
-UserAvatar.propTypes = {
-  user: PropTypes.object.isRequired
 };
 
 const SERVE_CUSTOMER = gql`
@@ -190,60 +157,8 @@ RemoveButton.propTypes = {
 
 const PANEL_PADDING = [6, 8, 10];
 
-const UPDATE_ORGANIZATION = gql`
-  mutation UpdateOrganization($input: UpdateOrganizationInput!) {
-    updateOrganization(input: $input) {
-      ...OrganizationFragment
-    }
-  }
-  ${ORGANIZATION_FRAGMENT}
-`;
-
-function AcceptingSwitch(props) {
-  const [updateOrganization, {loading}] = useMutation(UPDATE_ORGANIZATION);
-
-  function handleChange(event) {
-    if (
-      event.target.checked ||
-      confirm('Are you sure you want to stop accepting customers?')
-    ) {
-      updateOrganization({
-        variables: {
-          input: {
-            accepting: event.target.checked
-          }
-        }
-      });
-    }
-  }
-
-  return (
-    <>
-      <Text ml="auto" mr="2" as="label" htmlFor="accepting">
-        Accepting{' '}
-        <Box
-          as="span"
-          display={{
-            base: 'none',
-            md: 'inline'
-          }}
-        >
-          customers
-        </Box>
-      </Text>
-      <Switch
-        display="flex"
-        id="accepting"
-        isDisabled={loading}
-        onChange={handleChange}
-        {...props}
-      />
-    </>
-  );
-}
-
 export default function AppInner(props) {
-  const {user, customers, organization} = props.data;
+  const {customers} = props.data;
 
   useEffectOnce(() =>
     // subscribeToMore returns a function to unsubscribe
@@ -319,17 +234,6 @@ export default function AppInner(props) {
     >
       <Flex direction="column">
         <Box px={PANEL_PADDING} pb={PANEL_PADDING}>
-          <Flex
-            h={LOGO_HEIGHT}
-            my={LOGO_MARGIN}
-            align="center"
-            justify="flex-end"
-          >
-            <Box display={{lg: 'none'}}>
-              <UserAvatar user={user} />
-            </Box>
-            <AcceptingSwitch isChecked={organization.accepting} />
-          </Flex>
           <PanelHeading>Waiting</PanelHeading>
           <List spacing="6">
             {waitingCustomers.map((customer, index) => (
@@ -354,21 +258,14 @@ export default function AppInner(props) {
         />
       </Flex>
       <Box
-        h="100vh"
-        position="sticky"
-        top="0"
         flexDirection="column"
         px={PANEL_PADDING}
         bg="gray.50"
-        overflow="hidden"
         display={{
           base: 'none',
           lg: 'flex'
         }}
       >
-        <Flex flexShrink="0" h={LOGO_HEIGHT} my={LOGO_MARGIN} align="center">
-          <UserAvatar user={user} />
-        </Flex>
         {servedCustomers.length ? (
           <>
             <PanelHeading>Served today</PanelHeading>

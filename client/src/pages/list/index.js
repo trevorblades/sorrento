@@ -7,10 +7,10 @@ import {Helmet} from 'react-helmet';
 export default function List() {
   return (
     <>
-      <Helmet defaultTitle="Sorrento" titleTemplate="%s - Sorrento" />
+      <Helmet defaultTitle="w8up" titleTemplate="%s - w8up" />
       <NoSsr>
         <RequireAuth>
-          <App user={{}} />
+          <App />
         </RequireAuth>
       </NoSsr>
     </>
