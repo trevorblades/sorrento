@@ -1,11 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
-import {DarkButton, UserContext} from '../utils';
-import {Flex, IconButton, Input, Stack, Text, Tooltip} from '@chakra-ui/core';
-import {Helmet} from 'react-helmet';
-import {gql, useQuery} from '@apollo/client';
+import {Button, Flex, Input, Stack, Text} from '@chakra-ui/core';
 
-function LoginForm(props) {
+export default function LoginForm(props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -66,7 +63,8 @@ function LoginForm(props) {
           type="password"
           name="password"
         />
-        <DarkButton
+        <Button
+          variantColor="blue"
           isLoading={loading}
           size="lg"
           mt="2"
@@ -74,7 +72,7 @@ function LoginForm(props) {
           type="submit"
         >
           Submit
-        </DarkButton>
+        </Button>
       </Stack>
     </Flex>
   );
@@ -82,69 +80,4 @@ function LoginForm(props) {
 
 LoginForm.propTypes = {
   client: PropTypes.object.isRequired
-};
-
-function SidebarButton({label, isSelected, ...props}) {
-  return (
-    <Tooltip label={label}>
-      <IconButton
-        variant="ghost"
-        _hover={{bg: 'red.400'}}
-        _active={{bg: 'red.300'}}
-        fontSize="2xl"
-        color={isSelected ? 'white' : 'red.700'}
-        rounded="full"
-        {...props}
-      />
-    </Tooltip>
-  );
-}
-
-SidebarButton.propTypes = {
-  label: PropTypes.string.isRequired,
-  isSelected: PropTypes.bool
-};
-
-const GET_USER = gql`
-  {
-    user @client
-  }
-`;
-
-export default function RequireAuth(props) {
-  const {data, client} = useQuery(GET_USER);
-
-  if (data?.user) {
-    return (
-      <UserContext.Provider
-        value={{
-          user: data.user,
-          logOut() {
-            localStorage.removeItem('sorrento:token');
-            client.writeQuery({
-              query: GET_USER,
-              data: {
-                user: null
-              }
-            });
-          }
-        }}
-      >
-        {props.children}
-      </UserContext.Provider>
-    );
-  }
-
-  return (
-    <>
-      <Helmet>
-        <title>Log in</title>
-      </Helmet>
-      <LoginForm client={client} />
-    </>
-  );
-}
-
-RequireAuth.propTypes = {
-  children: PropTypes.node.isRequired
 };

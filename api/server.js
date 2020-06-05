@@ -58,7 +58,7 @@ app.post('/sms', async (req, res) => {
     .where('phone', req.body.To)
     .first();
 
-  if (req.body.Body === organization.keyword) {
+  if (req.body.Body.trim().toUpperCase() === organization.keyword) {
     const condition = {
       servedAt: null,
       phone: req.body.From,

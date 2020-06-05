@@ -1,18 +1,8 @@
-import React, {createContext} from 'react';
-import {Button} from '@chakra-ui/core';
+import {createContext} from 'react';
 import {gql} from '@apollo/client';
 
-export const DarkButton = props => (
-  <Button
-    bg="gray.900"
-    _hover={{bg: 'gray.800'}}
-    _active={{bg: 'gray.700'}}
-    color="white"
-    {...props}
-  />
-);
-
 export const UserContext = createContext();
+export const LocationContext = createContext();
 
 export const CUSTOMER_FRAGMENT = gql`
   fragment CustomerFragment on Customer {
@@ -32,4 +22,22 @@ export const ORGANIZATION_FRAGMENT = gql`
     name
     accepting
   }
+`;
+
+export const SERVE_CUSTOMER = gql`
+  mutation ServeCustomer($id: ID!) {
+    serveCustomer(id: $id) {
+      ...CustomerFragment
+    }
+  }
+  ${CUSTOMER_FRAGMENT}
+`;
+
+export const ON_CUSTOMER_SERVED = gql`
+  subscription OnCustomerServed {
+    customerServed {
+      ...CustomerFragment
+    }
+  }
+  ${CUSTOMER_FRAGMENT}
 `;
