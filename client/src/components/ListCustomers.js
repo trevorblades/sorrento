@@ -5,16 +5,19 @@ import {CUSTOMER_FRAGMENT} from '../utils';
 import {gql, useQuery} from '@apollo/client';
 
 const LIST_CUSTOMERS = gql`
-  query ListCustomers {
-    customers {
+  query ListCustomers($served: Boolean!) {
+    customers(served: $served) {
       ...CustomerFragment
     }
   }
   ${CUSTOMER_FRAGMENT}
 `;
 
-export default function ListCustomers(props) {
-  const {data, loading, error, subscribeToMore} = useQuery(LIST_CUSTOMERS);
+export default function ListCustomers({served, component}) {
+  const {data, loading, error, subscribeToMore} = useQuery(LIST_CUSTOMERS, {
+    variables: {served},
+    fetchPolicy: 'network-only'
+  });
 
   if (loading) {
     return (
@@ -28,12 +31,13 @@ export default function ListCustomers(props) {
     return <Text color="red.500">{error.message}</Text>;
   }
 
-  return React.createElement(props.component, {
+  return React.createElement(component, {
     customers: data.customers,
     subscribeToMore
   });
 }
 
 ListCustomers.propTypes = {
-  component: PropTypes.func.isRequired
+  component: PropTypes.func.isRequired,
+  served: PropTypes.bool.isRequired
 };

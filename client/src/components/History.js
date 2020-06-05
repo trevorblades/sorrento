@@ -1,16 +1,22 @@
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React from 'react';
+import useEffectOnce from 'react-use/lib/useEffectOnce';
 import {Box, List, ListItem, Text} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
+import {ON_CUSTOMER_SERVED} from '../utils';
 import {format} from 'date-fns';
 
 export default function History(props) {
-  const servedCustomers = useMemo(
-    () =>
-      props.customers
-        .filter(customer => customer.servedAt)
-        .sort((a, b) => new Date(b.servedAt) - new Date(a.servedAt)),
-    [props.customers]
+  useEffectOnce(() =>
+    props.subscribeToMore({
+      document: ON_CUSTOMER_SERVED,
+      updateQuery(prev, {subscriptionData}) {
+        return {
+          ...prev,
+          customers: [subscriptionData.data.customerServed, ...prev.customers]
+        };
+      }
+    })
   );
 
   return (
@@ -19,7 +25,7 @@ export default function History(props) {
         <title>Customer history</title>
       </Helmet>
       <List spacing="4">
-        {servedCustomers.map(customer => (
+        {props.customers.map(customer => (
           <ListItem key={customer.id}>
             <Text>{customer.name}</Text>
             <Text color="gray.500">
@@ -33,5 +39,6 @@ export default function History(props) {
 }
 
 History.propTypes = {
-  customers: PropTypes.array.isRequired
+  customers: PropTypes.array.isRequired,
+  subscribeToMore: PropTypes.func.isRequired
 };

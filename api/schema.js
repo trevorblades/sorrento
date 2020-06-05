@@ -6,7 +6,7 @@ export const typeDefs = gql`
   scalar DateTime
 
   type Query {
-    customers: [Customer!]!
+    customers(served: Boolean!): [Customer!]!
     organization: Organization!
   }
 
@@ -30,6 +30,7 @@ export const typeDefs = gql`
   type Customer {
     id: ID!
     name: String!
+    phone: String!
     waitingSince: DateTime!
     servedAt: DateTime
     servedBy: User
@@ -63,7 +64,14 @@ export const resolvers = {
   DateTime: GraphQLDateTime,
   Query: {
     customers: (parent, args, {db, user}) =>
-      db('customers').where('organizationId', user.organizationId),
+      db('customers')
+        .where('organizationId', user.organizationId)
+        [args.served ? 'whereNotNull' : 'whereNull']('servedAt')
+        .orderBy(
+          args.served ? 'servedAt' : 'waitingSince',
+          args.served && 'desc'
+        )
+        .limit(args.served && 10),
     organization: (parent, args, {db, user}) =>
       db('organizations')
         .where('id', user.organizationId)

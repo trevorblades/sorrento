@@ -19,6 +19,12 @@ module.exports = {
       options: {
         icon: 'src/assets/icon.svg'
       }
+    },
+    {
+      resolve: 'gatsby-plugin-create-client-paths',
+      options: {
+        prefixes: ['/app/*']
+      }
     }
   ]
 };

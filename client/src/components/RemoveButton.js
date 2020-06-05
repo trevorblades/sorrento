@@ -22,6 +22,7 @@ export default function RemoveButton(props) {
 
   return (
     <Button
+      size="sm"
       isLoading={loading}
       onClick={() => {
         if (

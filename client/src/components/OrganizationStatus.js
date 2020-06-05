@@ -32,7 +32,7 @@ export default function OrganizationStatus(props) {
       </Helmet>
       {/* <Text>{props.organization.accepting ? 'Open' : 'Closed'}</Text> */}
       <AcceptingSwitch isChecked={props.organization.accepting} />
-      <Button mx="2" variant="outline" size="sm">
+      <Button ml="2" variant="outline" size="sm">
         {props.organization.name}
       </Button>
     </>

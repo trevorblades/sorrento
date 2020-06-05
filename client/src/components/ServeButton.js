@@ -13,6 +13,7 @@ export default function ServeButton(props) {
 
   return (
     <Button
+      size="sm"
       variantColor="blue"
       isLoading={loading}
       mr="3"

@@ -8,6 +8,7 @@ export const CUSTOMER_FRAGMENT = gql`
   fragment CustomerFragment on Customer {
     id
     name
+    phone
     waitingSince
     servedAt
     servedBy {

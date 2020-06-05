@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, {useContext} from 'react';
 import {
   Avatar,
+  Box,
   Button,
   DarkMode,
   Flex,
@@ -65,9 +66,18 @@ export default function Header(props) {
           />
         )}
         <Menu>
-          <MenuButton as={Button} size="sm" px="2" variant="ghost">
-            {user.name}
-            <Avatar ml="2" fontSize="sm" size="xs" name={user.name} />{' '}
+          <MenuButton as={Button} size="sm" px="2" ml="2" variant="ghost">
+            <Box
+              as="span"
+              mr="2"
+              display={{
+                base: 'none',
+                md: 'block'
+              }}
+            >
+              {user.name}
+            </Box>
+            <Avatar fontSize="sm" size="xs" name={user.name} />{' '}
           </MenuButton>
           <LightMode>
             <MenuList color="gray.800" placement="auto-end">

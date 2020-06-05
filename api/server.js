@@ -24,7 +24,7 @@ const template = expand();
 const origin =
   process.env.NODE_ENV === 'production'
     ? 'https://sorrentobarbers.com'
-    : 'http://localhost:8000';
+    : /http:\/\/localhost:\d{4}/;
 
 app.use(cors({origin}));
 app.use(express.urlencoded({extended: false}));
