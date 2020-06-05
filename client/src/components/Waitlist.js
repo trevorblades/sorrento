@@ -54,13 +54,11 @@ export default function Waitlist(props) {
             borderTopWidth={index && '1px'}
             key={customer.id}
           >
-            <Box mb="3">
-              <Text fontSize="xl" fontWeight="medium">
-                {index + 1}. {format('(NNN) NNN-NNNN', customer.phone.slice(2))}
-              </Text>
-              <Text>{customer.name}</Text>
-            </Box>
-            <Stack align="center" isInline spacing="2">
+            <Text fontSize="xl" fontWeight="medium">
+              {index + 1}. {format('(NNN) NNN-NNNN', customer.phone.slice(2))}
+            </Text>
+            <Text>{customer.name}</Text>
+            <Stack align="center" isInline spacing="2" mt="3">
               <ServeButton
                 mutationOptions={{
                   variables: {
