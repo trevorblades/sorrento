@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Button} from '@chakra-ui/core';
 import {CUSTOMER_FRAGMENT} from '../utils';
+import {FaTrashAlt} from 'react-icons/fa';
 import {gql, useMutation} from '@apollo/client';
 
 const REMOVE_CUSTOMER = gql`
@@ -23,7 +24,11 @@ export default function RemoveButton(props) {
   return (
     <Button
       size="sm"
+      variant="ghost"
+      color="gray.500"
+      rounded="full"
       isLoading={loading}
+      leftIcon={FaTrashAlt}
       onClick={() => {
         if (
           confirm(`Are you sure you want to remove "${props.customer.name}"?`)

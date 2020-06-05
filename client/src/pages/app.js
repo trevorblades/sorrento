@@ -7,8 +7,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import RequireAuth from '../components/RequireAuth';
 import Waitlist from '../components/Waitlist';
+import {Flex, Text} from '@chakra-ui/core';
 import {Router} from '@reach/router';
-import {Text} from '@chakra-ui/core';
 
 function NotFound() {
   return <Text>Not found</Text>;
@@ -19,12 +19,19 @@ export default function App(props) {
     <Layout>
       <NoSsr>
         <RequireAuth>
-          <Header location={props.location} />
-          <Router location={props.location}>
-            <ListCustomers path="/app" served={false} component={Waitlist} />
-            <ListCustomers path="/app/customers" served component={History} />
-            <NotFound default />
-          </Router>
+          <Flex justify="stretch" direction="column" minH="100vh">
+            <Header location={props.location} />
+            <Flex
+              flexGrow="1"
+              direction="column"
+              as={Router}
+              location={props.location}
+            >
+              <ListCustomers path="/app" served={false} component={Waitlist} />
+              <ListCustomers path="/app/customers" served component={History} />
+              <NotFound default />
+            </Flex>
+          </Flex>
         </RequireAuth>
       </NoSsr>
     </Layout>

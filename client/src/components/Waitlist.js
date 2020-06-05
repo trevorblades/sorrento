@@ -45,27 +45,30 @@ export default function Waitlist(props) {
   );
 
   return (
-    <Flex flexGrow="1" direction="column">
-      <Box p={[4, 6, 8]}>
-        <List spacing="6">
-          {props.customers.map((customer, index) => (
-            <ListItem key={customer.id}>
-              <Box mb="2">
-                <Text lineHeight="normal" fontSize="xl" fontWeight="medium">
-                  {index + 1}.{' '}
-                  {format('C (NNN) NNN-NNNN', customer.phone.slice(1))}
-                </Text>
-                <Text>
-                  {customer.name} &bull;{' '}
-                  <Timer date={new Date(customer.waitingSince)} />
-                </Text>
-              </Box>
-              <ServeButton customer={customer} />
-              <RemoveButton customer={customer} />
-            </ListItem>
-          ))}
-        </List>
-      </Box>
+    <>
+      <List>
+        {props.customers.map((customer, index) => (
+          <ListItem
+            px="6"
+            py="4"
+            borderTopWidth={index && '1px'}
+            key={customer.id}
+          >
+            <Box mb="3">
+              <Text lineHeight="normal" fontSize="xl" fontWeight="medium">
+                {index + 1}.{' '}
+                {format('C (NNN) NNN-NNNN', customer.phone.slice(1))}
+              </Text>
+              <Text>
+                {customer.name} &bull;{' '}
+                <Timer date={new Date(customer.waitingSince)} />
+              </Text>
+            </Box>
+            <ServeButton customer={customer} />
+            <RemoveButton customer={customer} />
+          </ListItem>
+        ))}
+      </List>
       <NextButton
         isDisabled={!props.customers.length}
         mutationOptions={{
@@ -74,7 +77,7 @@ export default function Waitlist(props) {
           }
         }}
       />
-    </Flex>
+    </>
   );
 }
 
