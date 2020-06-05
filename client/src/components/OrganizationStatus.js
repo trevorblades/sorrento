@@ -2,9 +2,9 @@ import AcceptingSwitch from './AcceptingSwitch';
 import PropTypes from 'prop-types';
 import React from 'react';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
-import {Button} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
 import {ORGANIZATION_FRAGMENT} from '../utils';
+import {Text} from '@chakra-ui/core';
 import {gql} from '@apollo/client';
 
 const ON_ORGANIZATION_UPDATED = gql`
@@ -30,11 +30,13 @@ export default function OrganizationStatus(props) {
       <Helmet>
         <title>{props.organization.name}</title>
       </Helmet>
-      {/* <Text>{props.organization.accepting ? 'Open' : 'Closed'}</Text> */}
+      <Text fontSize="sm" mr="2">
+        {props.organization.accepting ? 'On' : 'Off'}
+      </Text>
       <AcceptingSwitch isChecked={props.organization.accepting} />
-      <Button ml="2" variant="outline" size="sm">
+      {/* <Button ml="2" variant="outline" size="sm">
         {props.organization.name}
-      </Button>
+      </Button> */}
     </>
   );
 }

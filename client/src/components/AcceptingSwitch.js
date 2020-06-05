@@ -13,7 +13,7 @@ const UPDATE_ORGANIZATION = gql`
 `;
 
 export default function AcceptingSwitch(props) {
-  const [updateOrganization, {loading}] = useMutation(UPDATE_ORGANIZATION);
+  const [updateOrganization] = useMutation(UPDATE_ORGANIZATION);
 
   function handleChange(event) {
     const {checked: accepting} = event.target;
@@ -32,11 +32,6 @@ export default function AcceptingSwitch(props) {
   }
 
   return (
-    <Switch
-      display="flex"
-      isDisabled={loading}
-      onChange={handleChange}
-      {...props}
-    />
+    <Switch color="green" display="flex" onChange={handleChange} {...props} />
   );
 }

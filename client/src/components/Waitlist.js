@@ -5,7 +5,7 @@ import RemoveButton from './RemoveButton';
 import ServeButton from './ServeButton';
 import Timer from './Timer';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
-import {Box, Flex, List, ListItem, Text} from '@chakra-ui/core';
+import {Box, List, ListItem, Stack, Text} from '@chakra-ui/core';
 import {CUSTOMER_FRAGMENT, ON_CUSTOMER_SERVED} from '../utils';
 import {format} from 'phone-fns';
 import {gql} from '@apollo/client';
@@ -49,23 +49,30 @@ export default function Waitlist(props) {
       <List>
         {props.customers.map((customer, index) => (
           <ListItem
-            px="6"
-            py="4"
+            px={[5, 6]}
+            py={[3, 4]}
             borderTopWidth={index && '1px'}
             key={customer.id}
           >
             <Box mb="3">
-              <Text lineHeight="normal" fontSize="xl" fontWeight="medium">
-                {index + 1}.{' '}
-                {format('C (NNN) NNN-NNNN', customer.phone.slice(1))}
+              <Text fontSize="xl" fontWeight="medium">
+                {index + 1}. {format('(NNN) NNN-NNNN', customer.phone.slice(2))}
               </Text>
-              <Text>
-                {customer.name} &bull;{' '}
+              <Text>{customer.name}</Text>
+            </Box>
+            <Stack align="center" isInline spacing="2">
+              <ServeButton
+                mutationOptions={{
+                  variables: {
+                    id: customer.id
+                  }
+                }}
+              />
+              <RemoveButton customer={customer} />
+              <Text fontSize="sm" color="gray.500">
                 <Timer date={new Date(customer.waitingSince)} />
               </Text>
-            </Box>
-            <ServeButton customer={customer} />
-            <RemoveButton customer={customer} />
+            </Stack>
           </ListItem>
         ))}
       </List>
