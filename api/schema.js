@@ -63,15 +63,16 @@ const client = twilio(
 export const resolvers = {
   DateTime: GraphQLDateTime,
   Query: {
-    customers: (parent, args, {db, user}) =>
-      db('customers')
+    customers: (parent, args, {db, user}) => {
+      const query = db('customers')
         .where('organizationId', user.organizationId)
         [args.served ? 'whereNotNull' : 'whereNull']('servedAt')
         .orderBy(
           args.served ? 'servedAt' : 'waitingSince',
-          args.served && 'desc'
-        )
-        .limit(args.served && 10),
+          args.served ? 'desc' : 'asc'
+        );
+      return args.served ? query.limit(10) : query;
+    },
     organization: (parent, args, {db, user}) =>
       db('organizations')
         .where('id', user.organizationId)
