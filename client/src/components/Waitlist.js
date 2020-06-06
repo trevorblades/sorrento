@@ -5,8 +5,8 @@ import RemoveButton from './RemoveButton';
 import ServeButton from './ServeButton';
 import Timer from './Timer';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
-import {Box, List, ListItem, Stack, Text} from '@chakra-ui/core';
 import {CUSTOMER_FRAGMENT, ON_CUSTOMER_SERVED} from '../utils';
+import {List, ListItem, Stack, Text} from '@chakra-ui/core';
 import {format} from 'phone-fns';
 import {gql} from '@apollo/client';
 
