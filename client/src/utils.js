@@ -2,7 +2,6 @@ import {createContext} from 'react';
 import {gql} from '@apollo/client';
 
 export const UserContext = createContext();
-export const LocationContext = createContext();
 
 export const CUSTOMER_FRAGMENT = gql`
   fragment CustomerFragment on Customer {

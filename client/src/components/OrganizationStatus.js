@@ -20,9 +20,7 @@ export default function OrganizationStatus(props) {
   useEffectOnce(() =>
     // subscribeToMore returns a function to unsubscribe
     // we implicitly return subscribeToMore() to cleanup on unmount
-    props.subscribeToMore({
-      document: ON_ORGANIZATION_UPDATED
-    })
+    props.subscribeToMore({document: ON_ORGANIZATION_UPDATED})
   );
 
   return (

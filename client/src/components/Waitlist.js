@@ -5,10 +5,20 @@ import RemoveButton from './RemoveButton';
 import ServeButton from './ServeButton';
 import Timer from './Timer';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
+import {Box, Flex, List, ListItem, Stack, Text} from '@chakra-ui/core';
 import {CUSTOMER_FRAGMENT, ON_CUSTOMER_SERVED} from '../utils';
-import {List, ListItem, Stack, Text} from '@chakra-ui/core';
+import {FaArrowRight} from 'react-icons/fa';
 import {format} from 'phone-fns';
 import {gql} from '@apollo/client';
+
+const ON_CUSTOMER_ADDED = gql`
+  subscription OnCustomerAdded {
+    customerAdded {
+      ...CustomerFragment
+    }
+  }
+  ${CUSTOMER_FRAGMENT}
+`;
 
 const ON_CUSTOMER_REMOVED = gql`
   subscription OnCustomerRemoved {
@@ -32,6 +42,18 @@ function updateQuery(prev, {subscriptionData}) {
 export default function Waitlist(props) {
   useEffectOnce(() =>
     props.subscribeToMore({
+      document: ON_CUSTOMER_ADDED,
+      updateQuery(prev, {subscriptionData}) {
+        return {
+          ...prev,
+          customers: [subscriptionData.data.customerAdded, ...prev.customers]
+        };
+      }
+    })
+  );
+
+  useEffectOnce(() =>
+    props.subscribeToMore({
       document: ON_CUSTOMER_SERVED,
       updateQuery
     })
@@ -46,7 +68,7 @@ export default function Waitlist(props) {
 
   return (
     <>
-      <List>
+      <List position="relative">
         {props.customers.map((customer, index) => (
           <ListItem
             px={[5, 6]}
@@ -74,14 +96,39 @@ export default function Waitlist(props) {
           </ListItem>
         ))}
       </List>
-      <NextButton
-        isDisabled={!props.customers.length}
-        mutationOptions={{
-          variables: {
-            id: props.customers[0]?.id
-          }
-        }}
-      />
+      <Flex
+        px="4"
+        py="3"
+        bg="gray.900"
+        color="white"
+        mt="auto"
+        align="center"
+        justify="space-between"
+        position="sticky"
+        bottom="0"
+      >
+        <Box mr="4" overflow="hidden">
+          <Text color="gray.500" fontWeight="medium" fontSize="sm">
+            Now serving
+          </Text>
+          <Text isTruncated>
+            Trevoolkjsd flkjdfs alkjds falkdfs ajlkdajs lk sajo
+          </Text>
+        </Box>
+        <NextButton
+          size="lg"
+          rounded="full"
+          variantColor="green"
+          rightIcon={FaArrowRight}
+          flexShrink="0"
+          isDisabled={!props.customers.length}
+          mutationOptions={{
+            variables: {
+              id: props.customers[0]?.id
+            }
+          }}
+        />
+      </Flex>
     </>
   );
 }

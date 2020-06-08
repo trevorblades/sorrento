@@ -1,6 +1,5 @@
 import NavLink from './NavLink';
 import OrganizationStatus from './OrganizationStatus';
-import PropTypes from 'prop-types';
 import React, {useContext} from 'react';
 import {
   Avatar,
@@ -13,6 +12,7 @@ import {
   LightMode,
   Menu,
   MenuButton,
+  MenuDivider,
   MenuGroup,
   MenuItem,
   MenuList,
@@ -22,7 +22,7 @@ import {
 } from '@chakra-ui/core';
 import {FaEllipsisH} from 'react-icons/fa';
 import {Link as GatsbyLink} from 'gatsby';
-import {LocationContext, ORGANIZATION_FRAGMENT, UserContext} from '../utils';
+import {ORGANIZATION_FRAGMENT, UserContext} from '../utils';
 import {gql, useQuery} from '@apollo/client';
 
 const GET_ORGANIZATION = gql`
@@ -34,7 +34,7 @@ const GET_ORGANIZATION = gql`
   ${ORGANIZATION_FRAGMENT}
 `;
 
-export default function Header(props) {
+export default function Header() {
   const {user, logOut} = useContext(UserContext);
   const {data, loading, error, subscribeToMore} = useQuery(GET_ORGANIZATION);
   return (
@@ -61,43 +61,41 @@ export default function Header(props) {
         >
           W8UP
         </Heading>
-        <LocationContext.Provider value={props.location}>
-          <Stack
-            display={{
-              base: 'none',
-              md: 'flex'
-            }}
-            isInline
-            spacing="4"
-            mr="auto"
-          >
-            <NavLink to="/app">Waitlist</NavLink>
-            <NavLink to="/app/customers">Customer history</NavLink>
-          </Stack>
-          <Box display={{md: 'none'}} mr="auto">
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                icon={FaEllipsisH}
-                size="sm"
-                rounded="full"
-                variant="ghost"
-              />
-              <LightMode>
-                <MenuList color="gray.800">
-                  <MenuItem as={GatsbyLink} to="/app">
-                    Waitlist
-                  </MenuItem>
-                  <MenuItem as={GatsbyLink} to="/app/customers">
-                    Customer history
-                  </MenuItem>
-                </MenuList>
-              </LightMode>
-            </Menu>
-          </Box>
-        </LocationContext.Provider>
+        <Stack
+          display={{
+            base: 'none',
+            md: 'flex'
+          }}
+          isInline
+          spacing="4"
+          mr="auto"
+        >
+          <NavLink to="/app">Waitlist</NavLink>
+          <NavLink to="/app/customers">Customer history</NavLink>
+        </Stack>
+        <Box display={{md: 'none'}} mr="auto">
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              icon={FaEllipsisH}
+              size="sm"
+              rounded="full"
+              variant="ghost"
+            />
+            <LightMode>
+              <MenuList color="gray.800">
+                <MenuItem as={GatsbyLink} to="/app">
+                  Waitlist
+                </MenuItem>
+                <MenuItem as={GatsbyLink} to="/app/customers">
+                  Customer history
+                </MenuItem>
+              </MenuList>
+            </LightMode>
+          </Menu>
+        </Box>
         {loading ? (
-          <Skeleton rounded="md" w="120px" h="8" />
+          <Skeleton w="34px" h="5" rounded="full" />
         ) : error ? (
           <Text color="red.500">{error.message}</Text>
         ) : (
@@ -115,6 +113,12 @@ export default function Header(props) {
           </MenuButton>
           <LightMode>
             <MenuList color="gray.800" placement="auto-end">
+              {data && (
+                <>
+                  <MenuItem>{data.organization.name}</MenuItem>
+                  <MenuDivider />
+                </>
+              )}
               <MenuGroup title={`Logged in as ${user.name}`}>
                 <MenuItem>Account settings</MenuItem>
                 <MenuItem onClick={logOut}>Log out</MenuItem>
@@ -126,7 +130,3 @@ export default function Header(props) {
     </DarkMode>
   );
 }
-
-Header.propTypes = {
-  location: PropTypes.object.isRequired
-};

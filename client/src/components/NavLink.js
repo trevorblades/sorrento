@@ -1,17 +1,24 @@
 import PropTypes from 'prop-types';
-import React, {useContext} from 'react';
+import React from 'react';
 import {Link as GatsbyLink} from 'gatsby';
 import {Link} from '@chakra-ui/core';
-import {LocationContext} from '../utils';
+import {Location} from '@reach/router';
 
 export default function NavLink(props) {
-  const location = useContext(LocationContext);
   return (
-    <Link
-      as={GatsbyLink}
-      color={props.to === location.pathname ? undefined : 'gray.500'}
-      {...props}
-    />
+    <Location>
+      {({location}) => (
+        <Link
+          as={GatsbyLink}
+          color={
+            props.to === location.pathname.replace(/\/$/, '')
+              ? undefined
+              : 'gray.500'
+          }
+          {...props}
+        />
+      )}
+    </Location>
   );
 }
 

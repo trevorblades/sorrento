@@ -20,7 +20,7 @@ export default function App(props) {
       <NoSsr>
         <RequireAuth>
           <Flex justify="stretch" direction="column" minH="100vh">
-            <Header location={props.location} />
+            <Header />
             <Flex
               flexGrow="1"
               direction="column"
