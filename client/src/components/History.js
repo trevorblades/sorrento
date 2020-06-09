@@ -44,6 +44,7 @@ export default function History(props) {
           <Heading fontSize="2xl">Last 7 days</Heading>
           <Box h="300px">
             <ResponsiveLine
+              colors={{scheme: 'accent'}}
               gridYValues={maxY}
               axisLeft={{tickValues: maxY}}
               margin={{top: 40, right: 40, bottom: 40, left: 40}}
