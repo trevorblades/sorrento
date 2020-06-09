@@ -68,10 +68,24 @@ export default function Waitlist(props) {
 
   return (
     <>
-      <List spacing={[5, 6]} py={[4, 5]} px={[5, 6]} position="relative">
+      <List position="relative">
         {props.customers.map((customer, index) => (
-          <ListItem mx="auto" maxW="containers.lg" key={customer.id}>
-            <Box>
+          <ListItem
+            mx="auto"
+            px={{lg: 6}}
+            boxSizing="content-box"
+            maxW="containers.lg"
+            key={customer.id}
+          >
+            <Box
+              py={[3, 4]}
+              px={{
+                base: 5,
+                sm: 6,
+                lg: 0
+              }}
+              borderTopWidth={index && '1px'}
+            >
               <Text fontSize="xl" fontWeight="medium">
                 {index + 1}. {format('(NNN) NNN-NNNN', customer.phone.slice(2))}
               </Text>

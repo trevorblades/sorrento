@@ -7,11 +7,17 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import RequireAuth from '../components/RequireAuth';
 import Waitlist from '../components/Waitlist';
-import {Flex, Text} from '@chakra-ui/core';
+import {Box, Flex, Text} from '@chakra-ui/core';
 import {Router} from '@reach/router';
 
 function NotFound() {
-  return <Text>Not found</Text>;
+  return (
+    <Box>
+      <Box mx="auto" w="full" maxW="containers.lg">
+        <Text>Not found</Text>
+      </Box>
+    </Box>
+  );
 }
 
 export default function App(props) {
