@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import groupBy from 'lodash.groupby';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
-import {Box, Heading} from '@chakra-ui/core';
+import {Box, Heading, useTheme} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
 import {ON_CUSTOMER_SERVED} from '../utils';
 import {ResponsiveLine} from '@nivo/line';
@@ -10,6 +10,7 @@ import {format} from 'date-fns';
 
 export default function History(props) {
   const {customers} = props.data;
+  const {colors} = useTheme();
 
   useEffectOnce(() =>
     props.subscribeToMore({
@@ -37,14 +38,14 @@ export default function History(props) {
       <Box
         maxW="containers.lg"
         mx="auto"
-        display={{md: 'grid'}}
+        display={{lg: 'grid'}}
         gridTemplateColumns="1fr 1fr"
       >
         <Box minW="0">
           <Heading fontSize="2xl">Last 7 days</Heading>
           <Box h="300px">
             <ResponsiveLine
-              colors={{scheme: 'accent'}}
+              colors={[colors.green[500]]}
               gridYValues={maxY}
               axisLeft={{tickValues: maxY}}
               margin={{top: 40, right: 40, bottom: 40, left: 40}}
