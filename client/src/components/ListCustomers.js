@@ -1,17 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Box, Spinner, Text} from '@chakra-ui/core';
-import {CUSTOMER_FRAGMENT} from '../utils';
-import {gql, useQuery} from '@apollo/client';
-
-const LIST_CUSTOMERS = gql`
-  query ListCustomers($served: Boolean!) {
-    customers(served: $served) {
-      ...CustomerFragment
-    }
-  }
-  ${CUSTOMER_FRAGMENT}
-`;
+import {LIST_CUSTOMERS} from '../utils';
+import {useQuery} from '@apollo/client';
 
 export default function ListCustomers({served, component}) {
   const {data, loading, error, subscribeToMore} = useQuery(LIST_CUSTOMERS, {
@@ -32,7 +23,7 @@ export default function ListCustomers({served, component}) {
   }
 
   return React.createElement(component, {
-    customers: data.customers,
+    data,
     subscribeToMore
   });
 }

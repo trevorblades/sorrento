@@ -15,15 +15,15 @@ import {ON_CUSTOMER_SERVED} from '../utils';
 import {format} from 'date-fns';
 
 export default function History(props) {
+  const {customers} = props.data;
+
   useEffectOnce(() =>
     props.subscribeToMore({
       document: ON_CUSTOMER_SERVED,
-      updateQuery(prev, {subscriptionData}) {
-        return {
-          ...prev,
-          customers: [subscriptionData.data.customerServed, ...prev.customers]
-        };
-      }
+      updateQuery: (prev, {subscriptionData}) => ({
+        ...prev,
+        customers: [subscriptionData.data.customerServed, ...prev.customers]
+      })
     })
   );
 
@@ -44,14 +44,14 @@ export default function History(props) {
           </Heading>
           <Stat>
             <StatLabel>Customers served</StatLabel>
-            <StatNumber>{props.customers.length}</StatNumber>
+            <StatNumber>{customers.length}</StatNumber>
             <StatHelpText>
               <StatArrow type="increase" />
               10%
             </StatHelpText>
           </Stat>
         </Box>
-        <table>
+        <Box as="table" w="full">
           <thead>
             <tr>
               <th>Name</th>
@@ -60,7 +60,7 @@ export default function History(props) {
             </tr>
           </thead>
           <tbody>
-            {props.customers.map(customer => (
+            {customers.map(customer => (
               <tr key={customer.id}>
                 <td>{customer.name}</td>
                 <td>{customer.servedBy.name}</td>
@@ -68,13 +68,13 @@ export default function History(props) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Box>
       </Box>
     </Box>
   );
 }
 
 History.propTypes = {
-  customers: PropTypes.array.isRequired,
+  data: PropTypes.object.isRequired,
   subscribeToMore: PropTypes.func.isRequired
 };

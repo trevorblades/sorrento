@@ -24,6 +24,18 @@ export const ORGANIZATION_FRAGMENT = gql`
   }
 `;
 
+export const LIST_CUSTOMERS = gql`
+  query ListCustomers($served: Boolean!) {
+    customers(served: $served) {
+      ...CustomerFragment
+    }
+    nowServing {
+      ...CustomerFragment
+    }
+  }
+  ${CUSTOMER_FRAGMENT}
+`;
+
 export const SERVE_CUSTOMER = gql`
   mutation ServeCustomer($id: ID!) {
     serveCustomer(id: $id) {

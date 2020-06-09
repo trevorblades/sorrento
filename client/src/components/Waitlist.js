@@ -6,7 +6,7 @@ import ServeButton from './ServeButton';
 import Timer from './Timer';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
 import {Box, Flex, List, ListItem, Stack, Text} from '@chakra-ui/core';
-import {CUSTOMER_FRAGMENT, ON_CUSTOMER_SERVED} from '../utils';
+import {CUSTOMER_FRAGMENT, LIST_CUSTOMERS, ON_CUSTOMER_SERVED} from '../utils';
 import {FaArrowRight} from 'react-icons/fa';
 import {format} from 'phone-fns';
 import {gql} from '@apollo/client';
@@ -39,16 +39,34 @@ function updateQuery(prev, {subscriptionData}) {
   };
 }
 
+function update(cache, {data}) {
+  const queryOptions = {
+    query: LIST_CUSTOMERS,
+    variables: {
+      served: false
+    }
+  };
+
+  const {customers} = cache.readQuery(queryOptions);
+  cache.writeQuery({
+    ...queryOptions,
+    data: {
+      customers,
+      nowServing: data.serveCustomer
+    }
+  });
+}
+
 export default function Waitlist(props) {
+  const {nowServing, customers} = props.data;
+
   useEffectOnce(() =>
     props.subscribeToMore({
       document: ON_CUSTOMER_ADDED,
-      updateQuery(prev, {subscriptionData}) {
-        return {
-          ...prev,
-          customers: [subscriptionData.data.customerAdded, ...prev.customers]
-        };
-      }
+      updateQuery: (prev, {subscriptionData}) => ({
+        ...prev,
+        customers: [subscriptionData.data.customerAdded, ...prev.customers]
+      })
     })
   );
 
@@ -69,7 +87,7 @@ export default function Waitlist(props) {
   return (
     <>
       <List position="relative">
-        {props.customers.map((customer, index) => (
+        {customers.map((customer, index) => (
           <ListItem
             mx="auto"
             px={{lg: 6}}
@@ -93,6 +111,7 @@ export default function Waitlist(props) {
               <Stack align="center" isInline spacing="2" mt="3">
                 <ServeButton
                   mutationOptions={{
+                    update,
                     variables: {
                       id: customer.id
                     }
@@ -126,9 +145,7 @@ export default function Waitlist(props) {
             <Text color="gray.500" fontWeight="medium" fontSize="sm">
               Now serving
             </Text>
-            <Text isTruncated>
-              Trevoolkjsd flkjdfs alkjds falkdfs ajlkdajs lk sajo
-            </Text>
+            <Text isTruncated>{nowServing?.name}</Text>
           </Box>
           <NextButton
             size="lg"
@@ -136,10 +153,11 @@ export default function Waitlist(props) {
             variantColor="green"
             rightIcon={FaArrowRight}
             flexShrink="0"
-            isDisabled={!props.customers.length}
+            isDisabled={!customers.length}
             mutationOptions={{
+              update,
               variables: {
-                id: props.customers[0]?.id
+                id: customers[0]?.id
               }
             }}
           />
@@ -151,5 +169,5 @@ export default function Waitlist(props) {
 
 Waitlist.propTypes = {
   subscribeToMore: PropTypes.func.isRequired,
-  customers: PropTypes.array.isRequired
+  data: PropTypes.object.isRequired
 };

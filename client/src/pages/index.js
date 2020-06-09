@@ -7,16 +7,30 @@ export default function Home() {
   return (
     <Layout>
       <Flex minH="100vh">
-        <Box p="10" my="auto">
-          <Heading mb="2" fontSize="4xl">
-            🎱 W8UP
-          </Heading>
-          <Heading mb="6" fontSize="6xl">
-            Low tech, SMS-based waitlist
-          </Heading>
-          <Button as={GatsbyLink} to="/app" size="lg" variantColor="green">
-            Log in
-          </Button>
+        <Box
+          w="full"
+          p={{
+            base: 8,
+            md: 10
+          }}
+          my="auto"
+        >
+          <Box
+            w={{
+              base: 'full',
+              lg: 2 / 3
+            }}
+          >
+            <Heading mb="2" fontSize="4xl">
+              🎱 W8UP
+            </Heading>
+            <Heading mb="6" fontSize="6xl">
+              Low tech, SMS-based waitlist
+            </Heading>
+            <Button as={GatsbyLink} to="/app" size="lg" variantColor="green">
+              Log in
+            </Button>
+          </Box>
         </Box>
       </Flex>
     </Layout>

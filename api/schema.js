@@ -6,6 +6,7 @@ export const typeDefs = gql`
   scalar DateTime
 
   type Query {
+    nowServing: Customer
     customers(served: Boolean!): [Customer!]!
     organization: Organization!
   }
@@ -63,7 +64,12 @@ const client = twilio(
 export const resolvers = {
   DateTime: GraphQLDateTime,
   Query: {
-    customers: (parent, args, {db, user}) => {
+    nowServing: (parent, args, {db, user}) =>
+      db('customers')
+        .where('servedBy', user.id)
+        .orderBy('servedAt', 'desc')
+        .first(),
+    customers(parent, args, {db, user}) {
       const query = db('customers')
         .where('organizationId', user.organizationId)
         [args.served ? 'whereNotNull' : 'whereNull']('servedAt')
