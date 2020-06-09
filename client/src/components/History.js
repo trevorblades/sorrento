@@ -1,17 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import groupBy from 'lodash.groupby';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
-import {
-  Box,
-  Heading,
-  Stat,
-  StatArrow,
-  StatHelpText,
-  StatLabel,
-  StatNumber
-} from '@chakra-ui/core';
+import {Box, Heading} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
 import {ON_CUSTOMER_SERVED} from '../utils';
+import {ResponsiveLine} from '@nivo/line';
 import {format} from 'date-fns';
 
 export default function History(props) {
@@ -27,6 +21,14 @@ export default function History(props) {
     })
   );
 
+  const data = Object.entries(
+    groupBy(customers, customer =>
+      new Date(customer.servedAt).toLocaleDateString()
+    )
+  ).map(([x, {length: y}]) => ({x, y}));
+
+  const maxY = Math.max(...data.map(({y}) => y));
+
   return (
     <Box p={[5, 6]}>
       <Helmet>
@@ -36,22 +38,25 @@ export default function History(props) {
         maxW="containers.lg"
         mx="auto"
         display={{md: 'grid'}}
-        gridTemplateColumns="1fr 2fr"
+        gridTemplateColumns="1fr 1fr"
       >
-        <Box>
-          <Heading fontSize="2xl" mb="4">
-            Last 7 days
-          </Heading>
-          <Stat>
-            <StatLabel>Customers served</StatLabel>
-            <StatNumber>{customers.length}</StatNumber>
-            <StatHelpText>
-              <StatArrow type="increase" />
-              10%
-            </StatHelpText>
-          </Stat>
+        <Box minW="0">
+          <Heading fontSize="2xl">Last 7 days</Heading>
+          <Box h="300px">
+            <ResponsiveLine
+              gridYValues={maxY}
+              axisLeft={{tickValues: maxY}}
+              margin={{top: 40, right: 40, bottom: 40, left: 40}}
+              data={[
+                {
+                  id: 'customers',
+                  data
+                }
+              ]}
+            />
+          </Box>
         </Box>
-        <Box as="table" w="full">
+        <Box as="table" w="full" flexShrink="0">
           <thead>
             <tr>
               <th>Name</th>
@@ -64,7 +69,9 @@ export default function History(props) {
               <tr key={customer.id}>
                 <td>{customer.name}</td>
                 <td>{customer.servedBy.name}</td>
-                <td>{format(new Date(customer.servedAt), 'Pp')}</td>
+                <Box as="td" textAlign="right">
+                  {format(new Date(customer.servedAt), 'Pp')}
+                </Box>
               </tr>
             ))}
           </tbody>
