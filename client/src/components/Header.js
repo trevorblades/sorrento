@@ -9,7 +9,7 @@ import {
   Flex,
   Heading,
   IconButton,
-  LightMode,
+  Link,
   Menu,
   MenuButton,
   MenuDivider,
@@ -38,20 +38,17 @@ export default function Header() {
   const {user, logOut} = useContext(UserContext);
   const {data, loading, error, subscribeToMore} = useQuery(GET_ORGANIZATION);
   return (
-    <DarkMode>
-      <Flex
-        as="header"
-        px="2"
-        h="12"
-        align="center"
-        position="sticky"
-        top="0"
-        zIndex="sticky"
-        bg="gray.900"
-        color="white"
-      >
+    <Box
+      as="header"
+      position="sticky"
+      top="0"
+      zIndex="sticky"
+      bg="gray.900"
+      px="4"
+      color="white"
+    >
+      <Flex mx="auto" h="12" align="center" maxW="containers.lg">
         <Heading
-          ml="2"
           mr={{
             base: 2,
             md: 6
@@ -59,7 +56,9 @@ export default function Header() {
           as="h1"
           fontSize="2xl"
         >
-          W8UP
+          <Link _hover={{textDecor: 'none'}} as={GatsbyLink} to="/">
+            W8UP
+          </Link>
         </Heading>
         <Stack
           display={{
@@ -75,23 +74,23 @@ export default function Header() {
         </Stack>
         <Box display={{md: 'none'}} mr="auto">
           <Menu>
-            <MenuButton
-              as={IconButton}
-              icon={FaEllipsisH}
-              size="sm"
-              rounded="full"
-              variant="ghost"
-            />
-            <LightMode>
-              <MenuList color="gray.800">
-                <MenuItem as={GatsbyLink} to="/app">
-                  Waitlist
-                </MenuItem>
-                <MenuItem as={GatsbyLink} to="/app/customers">
-                  Customer history
-                </MenuItem>
-              </MenuList>
-            </LightMode>
+            <DarkMode>
+              <MenuButton
+                as={IconButton}
+                icon={FaEllipsisH}
+                size="sm"
+                rounded="full"
+                variant="ghost"
+              />
+            </DarkMode>
+            <MenuList color="gray.800">
+              <MenuItem as={GatsbyLink} to="/app">
+                Waitlist
+              </MenuItem>
+              <MenuItem as={GatsbyLink} to="/app/customers">
+                Customer history
+              </MenuItem>
+            </MenuList>
           </Menu>
         </Box>
         {loading ? (
@@ -99,34 +98,43 @@ export default function Header() {
         ) : error ? (
           <Text color="red.500">{error.message}</Text>
         ) : (
-          <OrganizationStatus
-            subscribeToMore={subscribeToMore}
-            organization={data.organization}
-          />
+          <DarkMode>
+            <OrganizationStatus
+              subscribeToMore={subscribeToMore}
+              organization={data.organization}
+            />
+          </DarkMode>
         )}
         <Menu>
-          <MenuButton as={Button} size="sm" px="2" ml="2" variant="ghost">
-            <Box as="span" mr="2" display={['none', 'initial']}>
-              {user.name}
-            </Box>
-            <Avatar fontSize="sm" size="xs" name={user.name} />
-          </MenuButton>
-          <LightMode>
-            <MenuList color="gray.800" placement="auto-end">
-              {data && (
-                <>
-                  <MenuItem>{data.organization.name}</MenuItem>
-                  <MenuDivider />
-                </>
-              )}
-              <MenuGroup title={`Logged in as ${user.name}`}>
-                <MenuItem>Account settings</MenuItem>
-                <MenuItem onClick={logOut}>Log out</MenuItem>
-              </MenuGroup>
-            </MenuList>
-          </LightMode>
+          <DarkMode>
+            <MenuButton
+              as={Button}
+              size="sm"
+              px="2"
+              ml="2"
+              mr="-8px"
+              variant="ghost"
+            >
+              <Box as="span" mr="2" display={['none', 'initial']}>
+                {user.name}
+              </Box>
+              <Avatar fontSize="sm" size="xs" name={user.name} />
+            </MenuButton>
+          </DarkMode>
+          <MenuList color="gray.800" placement="auto-end">
+            {data && (
+              <>
+                <MenuItem>{data.organization.name}</MenuItem>
+                <MenuDivider />
+              </>
+            )}
+            <MenuGroup title={`Logged in as ${user.name}`}>
+              <MenuItem>Account settings</MenuItem>
+              <MenuItem onClick={logOut}>Log out</MenuItem>
+            </MenuGroup>
+          </MenuList>
         </Menu>
       </Flex>
-    </DarkMode>
+    </Box>
   );
 }

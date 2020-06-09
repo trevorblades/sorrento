@@ -68,67 +68,69 @@ export default function Waitlist(props) {
 
   return (
     <>
-      <List position="relative">
+      <List spacing={[5, 6]} py={[4, 5]} px={[5, 6]} position="relative">
         {props.customers.map((customer, index) => (
-          <ListItem
-            px={[5, 6]}
-            py={[3, 4]}
-            borderTopWidth={index && '1px'}
-            key={customer.id}
-          >
-            <Text fontSize="xl" fontWeight="medium">
-              {index + 1}. {format('(NNN) NNN-NNNN', customer.phone.slice(2))}
-            </Text>
-            <Text>{customer.name}</Text>
-            <Stack align="center" isInline spacing="2" mt="3">
-              <ServeButton
-                mutationOptions={{
-                  variables: {
-                    id: customer.id
-                  }
-                }}
-              />
-              <RemoveButton customer={customer} />
-              <Text fontSize="sm" color="gray.500">
-                <Timer date={new Date(customer.waitingSince)} />
+          <ListItem mx="auto" maxW="containers.lg" key={customer.id}>
+            <Box>
+              <Text fontSize="xl" fontWeight="medium">
+                {index + 1}. {format('(NNN) NNN-NNNN', customer.phone.slice(2))}
               </Text>
-            </Stack>
+              <Text>{customer.name}</Text>
+              <Stack align="center" isInline spacing="2" mt="3">
+                <ServeButton
+                  mutationOptions={{
+                    variables: {
+                      id: customer.id
+                    }
+                  }}
+                />
+                <RemoveButton customer={customer} />
+                <Text fontSize="sm" color="gray.500">
+                  <Timer date={new Date(customer.waitingSince)} />
+                </Text>
+              </Stack>
+            </Box>
           </ListItem>
         ))}
       </List>
-      <Flex
+      <Box
         px="4"
         py="3"
         bg="gray.900"
         color="white"
         mt="auto"
-        align="center"
-        justify="space-between"
         position="sticky"
         bottom="0"
       >
-        <Box mr="4" overflow="hidden">
-          <Text color="gray.500" fontWeight="medium" fontSize="sm">
-            Now serving
-          </Text>
-          <Text isTruncated>
-            Trevoolkjsd flkjdfs alkjds falkdfs ajlkdajs lk sajo
-          </Text>
-        </Box>
-        <NextButton
-          size="lg"
-          rounded="full"
-          variantColor="green"
-          rightIcon={FaArrowRight}
-          flexShrink="0"
-          isDisabled={!props.customers.length}
-          mutationOptions={{
-            variables: {
-              id: props.customers[0]?.id
-            }
-          }}
-        />
-      </Flex>
+        <Flex
+          maxW="containers.lg"
+          mx="auto"
+          align="center"
+          justify="space-between"
+        >
+          <Box mr="4" overflow="hidden">
+            <Text color="gray.500" fontWeight="medium" fontSize="sm">
+              Now serving
+            </Text>
+            <Text isTruncated>
+              Trevoolkjsd flkjdfs alkjds falkdfs ajlkdajs lk sajo
+            </Text>
+          </Box>
+          <NextButton
+            size="lg"
+            rounded="full"
+            variantColor="green"
+            rightIcon={FaArrowRight}
+            flexShrink="0"
+            isDisabled={!props.customers.length}
+            mutationOptions={{
+              variables: {
+                id: props.customers[0]?.id
+              }
+            }}
+          />
+        </Flex>
+      </Box>
     </>
   );
 }

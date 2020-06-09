@@ -19,7 +19,7 @@ export default function App(props) {
     <Layout>
       <NoSsr>
         <RequireAuth>
-          <Flex justify="stretch" direction="column" minH="100vh">
+          <Flex direction="column" minH="100vh">
             <Header />
             <Flex
               flexGrow="1"

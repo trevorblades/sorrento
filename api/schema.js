@@ -71,7 +71,9 @@ export const resolvers = {
           args.served ? 'servedAt' : 'waitingSince',
           args.served ? 'desc' : 'asc'
         );
-      return args.served ? query.limit(10) : query;
+      return args.served
+        ? query.whereRaw('"servedAt" > now() - interval \'7 days\'')
+        : query;
     },
     organization: (parent, args, {db, user}) =>
       db('organizations')
