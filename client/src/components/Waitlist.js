@@ -135,22 +135,22 @@ export default function Waitlist(props) {
         position="sticky"
         bottom="0"
       >
-        <Flex
-          maxW="containers.lg"
-          mx="auto"
-          align="center"
-          justify="space-between"
-        >
-          <Box mr="4" overflow="hidden">
-            <Text color="gray.500" fontWeight="medium" fontSize="sm">
-              Now serving
-            </Text>
-            <Text isTruncated>{nowServing?.name}</Text>
-          </Box>
+        <Flex maxW="containers.lg" mx="auto" align="center">
+          {nowServing && (
+            <Box mr="4" overflow="hidden">
+              <Text color="gray.500" fontWeight="medium" fontSize="sm">
+                Now serving
+              </Text>
+              <Text fontWeight="medium" isTruncated>
+                {nowServing.name}
+              </Text>
+            </Box>
+          )}
           <NextButton
             size="lg"
             rounded="full"
             variantColor="green"
+            ml="auto"
             rightIcon={FaArrowRight}
             flexShrink="0"
             isDisabled={!customers.length}

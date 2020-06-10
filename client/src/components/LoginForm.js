@@ -72,7 +72,7 @@ export default function LoginForm(props) {
             ml="auto"
             type="submit"
           >
-            Submit
+            Log in
           </Button>
         </Box>
       </Box>

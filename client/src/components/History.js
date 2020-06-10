@@ -8,6 +8,10 @@ import {ON_CUSTOMER_SERVED} from '../utils';
 import {ResponsiveLine} from '@nivo/line';
 import {format} from 'date-fns';
 
+function TableHeader(props) {
+  return <Box as="th" textAlign="left" fontWeight="medium" {...props} />;
+}
+
 export default function History(props) {
   const {customers} = props.data;
   const {colors} = useTheme();
@@ -24,7 +28,7 @@ export default function History(props) {
 
   const data = Object.entries(
     groupBy(customers, customer =>
-      new Date(customer.servedAt).toLocaleDateString()
+      new Date(customer.servedAt).toLocaleDateString('sv')
     )
   ).map(([x, {length: y}]) => ({x, y}));
 
@@ -35,46 +39,54 @@ export default function History(props) {
       <Helmet>
         <title>Customer history</title>
       </Helmet>
-      <Box
-        maxW="containers.lg"
-        mx="auto"
-        display={{lg: 'grid'}}
-        gridTemplateColumns="1fr 1fr"
-      >
-        <Box minW="0">
-          <Heading fontSize="2xl">Last 7 days</Heading>
-          <Box h="300px">
-            <ResponsiveLine
-              colors={[colors.green[500]]}
-              gridYValues={maxY}
-              axisLeft={{tickValues: maxY}}
-              margin={{top: 40, right: 40, bottom: 40, left: 40}}
-              data={[
-                {
-                  id: 'customers',
-                  data
-                }
-              ]}
-            />
-          </Box>
+      <Box maxW="containers.lg" mx="auto">
+        <Heading mb="4" fontSize="2xl">
+          Last 7 days
+        </Heading>
+        <Box h="300px" mb="4">
+          <ResponsiveLine
+            colors={[colors.green[500]]}
+            gridYValues={maxY}
+            axisLeft={{tickValues: maxY}}
+            axisBottom={{
+              format: '%b %d',
+              tickValues: 'every day'
+            }}
+            xScale={{
+              type: 'time',
+              format: '%Y-%m-%d',
+              useUTC: false
+            }}
+            margin={{top: 24, right: 24, bottom: 24, left: 24}}
+            data={[
+              {
+                id: 'customers',
+                data
+              }
+            ]}
+          />
         </Box>
-        <Box as="table" w="full" flexShrink="0">
+        <Box as="table" w="full" flexShrink="0" lineHeight="taller">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Served by</th>
-              <th>Served at</th>
+              <TableHeader>Name</TableHeader>
+              <TableHeader>Served by</TableHeader>
+              <TableHeader textAlign="right">Served at</TableHeader>
             </tr>
           </thead>
           <tbody>
-            {customers.map(customer => (
-              <tr key={customer.id}>
+            {customers.map((customer, index) => (
+              <Box
+                as="tr"
+                bg={index % 2 ? undefined : 'gray.50'}
+                key={customer.id}
+              >
                 <td>{customer.name}</td>
                 <td>{customer.servedBy.name}</td>
                 <Box as="td" textAlign="right">
                   {format(new Date(customer.servedAt), 'Pp')}
                 </Box>
-              </tr>
+              </Box>
             ))}
           </tbody>
         </Box>

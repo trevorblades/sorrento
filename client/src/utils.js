@@ -30,7 +30,7 @@ export const LIST_CUSTOMERS = gql`
       ...CustomerFragment
     }
     nowServing {
-      ...CustomerFragment
+      name
     }
   }
   ${CUSTOMER_FRAGMENT}
