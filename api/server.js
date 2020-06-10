@@ -133,7 +133,7 @@ app.post('/sms', async (req, res) => {
         }
 
         messages.push(
-          `We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list.`
+          `We will text you when you're up next. Reply "${REMOVE_KEYWORD}" at any time to remove yourself from the list. This is an automated response, so we can not reply to your questions.`
         );
 
         twiml.message(messages.join(' '));
