@@ -44,11 +44,7 @@ export default function LoginForm(props) {
           🎱 W8UP
         </Heading>
         <Stack spacing="4">
-          {error && (
-            <Text textAlign="center" fontWeight="bold">
-              {error}
-            </Text>
-          )}
+          {error && <Text color="red.500">{error}</Text>}
           <Input
             size="lg"
             autoFocus

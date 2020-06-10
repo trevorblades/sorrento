@@ -1,7 +1,4 @@
-import {createContext} from 'react';
 import {gql} from '@apollo/client';
-
-export const UserContext = createContext();
 
 export const CUSTOMER_FRAGMENT = gql`
   fragment CustomerFragment on Customer {
@@ -52,4 +49,10 @@ export const ON_CUSTOMER_SERVED = gql`
     }
   }
   ${CUSTOMER_FRAGMENT}
+`;
+
+export const GET_LOGGED_IN = gql`
+  query GetLoggedIn {
+    isLoggedIn @client
+  }
 `;

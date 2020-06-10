@@ -8,7 +8,9 @@ export const typeDefs = gql`
   type Query {
     nowServing: Customer
     customers(served: Boolean!): [Customer!]!
-    organization: Organization!
+    organization: Organization
+    phoneNumbers: [PhoneNumber!]!
+    me: User!
   }
 
   type Mutation {
@@ -46,6 +48,12 @@ export const typeDefs = gql`
   type User {
     id: ID!
     name: String!
+    organization: Organization
+  }
+
+  type PhoneNumber {
+    friendlyName: String!
+    phoneNumber: String!
   }
 `;
 
@@ -84,7 +92,10 @@ export const resolvers = {
     organization: (parent, args, {db, user}) =>
       db('organizations')
         .where('id', user.organizationId)
-        .first()
+        .first(),
+    phoneNumbers: () =>
+      client.availablePhoneNumbers('US').tollFree.list({limit: 3}),
+    me: (parent, args, {user}) => user
   },
   Subscription: {
     customerAdded: {
@@ -181,6 +192,12 @@ export const resolvers = {
       customer.servedBy &&
       db('users')
         .where('id', customer.servedBy)
+        .first()
+  },
+  User: {
+    organization: (user, args, {db}) =>
+      db('organizations')
+        .where('id', user.organizationId)
         .first()
   }
 };

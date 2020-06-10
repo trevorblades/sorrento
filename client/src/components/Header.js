@@ -1,10 +1,8 @@
 import NavLink from './NavLink';
-import OrganizationStatus from './OrganizationStatus';
-import React, {useContext} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {
-  Avatar,
   Box,
-  Button,
   DarkMode,
   Flex,
   Heading,
@@ -12,31 +10,14 @@ import {
   Link,
   Menu,
   MenuButton,
-  MenuDivider,
-  MenuGroup,
   MenuItem,
   MenuList,
-  Skeleton,
-  Stack,
-  Text
+  Stack
 } from '@chakra-ui/core';
 import {FaEllipsisH} from 'react-icons/fa';
 import {Link as GatsbyLink} from 'gatsby';
-import {ORGANIZATION_FRAGMENT, UserContext} from '../utils';
-import {gql, useQuery} from '@apollo/client';
 
-const GET_ORGANIZATION = gql`
-  query GetOrganization {
-    organization {
-      ...OrganizationFragment
-    }
-  }
-  ${ORGANIZATION_FRAGMENT}
-`;
-
-export default function Header() {
-  const {user, logOut} = useContext(UserContext);
-  const {data, loading, error, subscribeToMore} = useQuery(GET_ORGANIZATION);
+export default function Header(props) {
   return (
     <Box
       as="header"
@@ -93,48 +74,12 @@ export default function Header() {
             </MenuList>
           </Menu>
         </Box>
-        {loading ? (
-          <Skeleton w="34px" h="5" rounded="full" />
-        ) : error ? (
-          <Text color="red.500">{error.message}</Text>
-        ) : (
-          <DarkMode>
-            <OrganizationStatus
-              subscribeToMore={subscribeToMore}
-              organization={data.organization}
-            />
-          </DarkMode>
-        )}
-        <Menu>
-          <DarkMode>
-            <MenuButton
-              as={Button}
-              size="sm"
-              px="2"
-              ml="2"
-              mr="-8px"
-              variant="ghost"
-            >
-              <Box as="span" mr="2" display={['none', 'initial']}>
-                {user.name}
-              </Box>
-              <Avatar fontSize="sm" size="xs" name={user.name} />
-            </MenuButton>
-          </DarkMode>
-          <MenuList color="gray.800" placement="auto-end">
-            {data && (
-              <>
-                <MenuItem>{data.organization.name}</MenuItem>
-                <MenuDivider />
-              </>
-            )}
-            <MenuGroup title={`Logged in as ${user.name}`}>
-              <MenuItem>Account settings</MenuItem>
-              <MenuItem onClick={logOut}>Log out</MenuItem>
-            </MenuGroup>
-          </MenuList>
-        </Menu>
+        {props.children}
       </Flex>
     </Box>
   );
 }
+
+Header.propTypes = {
+  children: PropTypes.node.isRequired
+};

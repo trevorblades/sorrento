@@ -1,4 +1,3 @@
-import decode from 'jwt-decode';
 import fetch from 'isomorphic-fetch';
 import {
   ApolloClient,
@@ -53,14 +52,7 @@ const client = new ApolloClient({
     : authLink.concat(httpLink),
   resolvers: {
     Query: {
-      user() {
-        const token = localStorage.getItem('sorrento:token');
-        try {
-          return decode(token);
-        } catch (error) {
-          return null;
-        }
-      }
+      isLoggedIn: () => Boolean(localStorage.getItem('sorrento:token'))
     }
   }
 });

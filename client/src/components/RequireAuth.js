@@ -1,38 +1,15 @@
 import LoginForm from './LoginForm';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {GET_LOGGED_IN} from '../utils';
 import {Helmet} from 'react-helmet';
-import {UserContext} from '../utils';
-import {gql, useQuery} from '@apollo/client';
-
-const GET_USER = gql`
-  query GetUser {
-    user @client
-  }
-`;
+import {useQuery} from '@apollo/client';
 
 export default function RequireAuth(props) {
-  const {data, client} = useQuery(GET_USER);
+  const {data, client} = useQuery(GET_LOGGED_IN);
 
-  if (data?.user) {
-    return (
-      <UserContext.Provider
-        value={{
-          user: data.user,
-          logOut() {
-            localStorage.removeItem('sorrento:token');
-            client.writeQuery({
-              query: GET_USER,
-              data: {
-                user: null
-              }
-            });
-          }
-        }}
-      >
-        {props.children}
-      </UserContext.Provider>
-    );
+  if (data?.isLoggedIn) {
+    return props.children;
   }
 
   return (
