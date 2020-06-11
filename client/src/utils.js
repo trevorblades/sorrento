@@ -21,9 +21,9 @@ export const ORGANIZATION_FRAGMENT = gql`
   }
 `;
 
-export const LIST_CUSTOMERS = gql`
-  query ListCustomers($served: Boolean!) {
-    customers(served: $served) {
+export const WAITLIST_QUERY = gql`
+  query WaitlistQuery {
+    customers(served: false) {
       ...CustomerFragment
     }
     nowServing {

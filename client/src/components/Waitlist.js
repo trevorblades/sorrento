@@ -6,7 +6,7 @@ import ServeButton from './ServeButton';
 import Timer from './Timer';
 import useEffectOnce from 'react-use/lib/useEffectOnce';
 import {Box, Flex, List, ListItem, Stack, Text} from '@chakra-ui/core';
-import {CUSTOMER_FRAGMENT, LIST_CUSTOMERS, ON_CUSTOMER_SERVED} from '../utils';
+import {CUSTOMER_FRAGMENT, ON_CUSTOMER_SERVED, WAITLIST_QUERY} from '../utils';
 import {FaArrowRight} from 'react-icons/fa';
 import {format} from 'phone-fns';
 import {gql} from '@apollo/client';
@@ -40,16 +40,9 @@ function updateQuery(prev, {subscriptionData}) {
 }
 
 function update(cache, {data}) {
-  const queryOptions = {
-    query: LIST_CUSTOMERS,
-    variables: {
-      served: false
-    }
-  };
-
-  const {customers} = cache.readQuery(queryOptions);
+  const {customers} = cache.readQuery({query: WAITLIST_QUERY});
   cache.writeQuery({
-    ...queryOptions,
+    query: WAITLIST_QUERY,
     data: {
       customers,
       nowServing: data.serveCustomer
@@ -57,11 +50,9 @@ function update(cache, {data}) {
   });
 }
 
-export default function Waitlist(props) {
-  const {nowServing, customers} = props.data;
-
+export default function Waitlist({data, subscribeToMore}) {
   useEffectOnce(() =>
-    props.subscribeToMore({
+    subscribeToMore({
       document: ON_CUSTOMER_ADDED,
       updateQuery: (prev, {subscriptionData}) => ({
         ...prev,
@@ -71,14 +62,14 @@ export default function Waitlist(props) {
   );
 
   useEffectOnce(() =>
-    props.subscribeToMore({
+    subscribeToMore({
       document: ON_CUSTOMER_SERVED,
       updateQuery
     })
   );
 
   useEffectOnce(() =>
-    props.subscribeToMore({
+    subscribeToMore({
       document: ON_CUSTOMER_REMOVED,
       updateQuery
     })
@@ -86,15 +77,9 @@ export default function Waitlist(props) {
 
   return (
     <>
-      <List position="relative">
-        {customers.map((customer, index) => (
-          <ListItem
-            mx="auto"
-            px={{lg: 6}}
-            boxSizing="content-box"
-            maxW="containers.lg"
-            key={customer.id}
-          >
+      <List position="relative" px={{lg: 6}}>
+        {data.customers.map((customer, index) => (
+          <ListItem mx="auto" maxW="containers.lg" key={customer.id}>
             <Box
               py={[3, 4]}
               px={{
@@ -136,13 +121,13 @@ export default function Waitlist(props) {
         bottom="0"
       >
         <Flex maxW="containers.lg" mx="auto" align="center">
-          {nowServing && (
+          {data.nowServing && (
             <Box mr="4" overflow="hidden">
               <Text color="gray.500" fontWeight="medium" fontSize="sm">
                 Now serving
               </Text>
               <Text fontWeight="medium" isTruncated>
-                {nowServing.name}
+                {data.nowServing.name}
               </Text>
             </Box>
           )}
@@ -153,11 +138,11 @@ export default function Waitlist(props) {
             ml="auto"
             rightIcon={FaArrowRight}
             flexShrink="0"
-            isDisabled={!customers.length}
+            isDisabled={!data.customers.length}
             mutationOptions={{
               update,
               variables: {
-                id: customers[0]?.id
+                id: data.customers[0]?.id
               }
             }}
           />

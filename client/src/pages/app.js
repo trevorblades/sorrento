@@ -1,176 +1,66 @@
-import Header from '../components/Header';
+import AppInner from '../components/AppInner';
 import History from '../components/History';
 import Layout from '../components/Layout';
-import ListCustomers from '../components/ListCustomers';
 import NoSsr from '@mpth/react-no-ssr';
-import OrganizationStatus from '../components/OrganizationStatus';
+import NotFound from '../components/NotFound';
+import OrganizationSettings from '../components/OrganizationSettings';
 import PropTypes from 'prop-types';
+import QueryLoader from '../components/QueryLoader';
 import React from 'react';
 import RequireAuth from '../components/RequireAuth';
 import Waitlist from '../components/Waitlist';
 import {
-  Avatar,
-  Box,
-  Button,
-  DarkMode,
-  Flex,
-  Heading,
-  Menu,
-  MenuButton,
-  MenuGroup,
-  MenuItem,
-  MenuList,
-  Radio,
-  RadioGroup,
-  Spinner,
-  Text
-} from '@chakra-ui/core';
-import {GET_LOGGED_IN, ORGANIZATION_FRAGMENT} from '../utils';
+  CUSTOMER_FRAGMENT,
+  ORGANIZATION_FRAGMENT,
+  WAITLIST_QUERY
+} from '../utils';
+import {Flex} from '@chakra-ui/core';
 import {Router} from '@reach/router';
-import {gql, useQuery} from '@apollo/client';
+import {gql} from '@apollo/client';
 
-function NotFound() {
-  return (
-    <Box>
-      <Box mx="auto" w="full" maxW="containers.lg">
-        <Text>Not found</Text>
-      </Box>
-    </Box>
-  );
-}
-
-const LIST_PHONE_NUMBERS = gql`
-  query ListPhoneNumbers {
-    phoneNumbers {
-      friendlyName
-      phoneNumber
-    }
-  }
-`;
-
-function PhoneNumbers(props) {
-  const {data, loading, error} = useQuery(LIST_PHONE_NUMBERS);
-
-  if (loading) {
-    return <Spinner />;
-  }
-
-  if (error) {
-    return <Text color="red.500">{error.message}</Text>;
-  }
-
-  return (
-    <>
-      <Heading fontSize="3xl">Create an organization</Heading>
-      <RadioGroup defaultValue={data.phoneNumbers[0].phoneNumber}>
-        {data.phoneNumbers.map(phoneNumber => (
-          <Radio key={phoneNumber.phoneNumber} value={phoneNumber.phoneNumber}>
-            {phoneNumber.friendlyName}
-          </Radio>
-        ))}
-      </RadioGroup>
-      <Text>Payment option: TODO</Text>
-      <Button>Create organization</Button>
-      {props.children}
-    </>
-  );
-}
-
-PhoneNumbers.propTypes = {
-  children: PropTypes.node.isRequired
-};
-
-const GET_ORGANIZATION = gql`
-  query GetOrganization {
+const APP_QUERY = gql`
+  query AppQuery {
     me {
       name
-      organization {
-        ...OrganizationFragment
-      }
+    }
+    organization {
+      ...OrganizationFragment
     }
   }
   ${ORGANIZATION_FRAGMENT}
 `;
 
-function AppInner(props) {
-  const {data, loading, error, subscribeToMore, client} = useQuery(
-    GET_ORGANIZATION
-  );
-
-  if (loading) {
-    return (
-      <Box m="auto">
-        <Spinner />
-      </Box>
-    );
+const HISTORY_QUERY = gql`
+  query HistoryQuery {
+    customers(served: true) {
+      ...CustomerFragment
+    }
   }
+  ${CUSTOMER_FRAGMENT}
+`;
 
-  if (error) {
-    return <Text color="red.500">{error.message}</Text>;
+const GET_ORGANIZATION = gql`
+  query GetOrganization {
+    organization {
+      ...OrganizationFragment
+      phone
+      queueLimit
+      averageHandleTime
+      activeAgents
+      keyword
+      person
+      welcomeMessage
+      queueMessage
+      queueEmptyMessage
+      notAcceptingMessage
+      readyMessage
+      removedMessage
+      notRemovedMessage
+      limitExceededMessage
+    }
   }
-
-  function logOut() {
-    localStorage.removeItem('sorrento:token');
-    client.writeQuery({
-      query: GET_LOGGED_IN,
-      data: {
-        isLoggedIn: false
-      }
-    });
-  }
-
-  if (!data.me.organization) {
-    return (
-      <Box m="auto">
-        <PhoneNumbers>
-          <Button onClick={logOut}>Log out</Button>
-        </PhoneNumbers>
-      </Box>
-    );
-  }
-
-  return (
-    <>
-      <Header>
-        <DarkMode>
-          <OrganizationStatus
-            subscribeToMore={subscribeToMore}
-            organization={data.me.organization}
-          />
-        </DarkMode>
-        <Menu>
-          <DarkMode>
-            <MenuButton
-              as={Button}
-              size="sm"
-              px="2"
-              ml="2"
-              mr="-8px"
-              variant="ghost"
-            >
-              <Box as="span" mr="2" display={['none', 'initial']}>
-                {data.me.name}
-              </Box>
-              <Avatar fontSize="sm" size="xs" name={data.me.name} />
-            </MenuButton>
-          </DarkMode>
-          <MenuList color="gray.800" placement="auto-end">
-            <MenuItem>{data.me.organization.name}</MenuItem>
-            <MenuGroup title={`Logged in as ${data.me.name}`}>
-              <MenuItem>Account settings</MenuItem>
-              <MenuItem onClick={logOut}>Log out</MenuItem>
-            </MenuGroup>
-          </MenuList>
-        </Menu>
-      </Header>
-      {props.children}
-    </>
-  );
-}
-
-AppInner.propTypes = {
-  children: PropTypes.node.isRequired
-};
+  ${ORGANIZATION_FRAGMENT}
+`;
 
 export default function App(props) {
   return (
@@ -178,26 +68,33 @@ export default function App(props) {
       <NoSsr>
         <RequireAuth>
           <Flex direction="column" minH="100vh">
-            <AppInner>
+            <QueryLoader component={AppInner} query={APP_QUERY}>
               <Flex
                 flexGrow="1"
                 direction="column"
                 as={Router}
                 location={props.location}
               >
-                <ListCustomers
+                <QueryLoader
                   path="/app"
-                  served={false}
                   component={Waitlist}
+                  query={WAITLIST_QUERY}
+                  queryOptions={{fetchPolicy: 'network-only'}}
                 />
-                <ListCustomers
+                <QueryLoader
                   path="/app/customers"
-                  served
                   component={History}
+                  query={HISTORY_QUERY}
+                  queryOptions={{fetchPolicy: 'network-only'}}
+                />
+                <QueryLoader
+                  path="/app/organization"
+                  component={OrganizationSettings}
+                  query={GET_ORGANIZATION}
                 />
                 <NotFound default />
               </Flex>
-            </AppInner>
+            </QueryLoader>
           </Flex>
         </RequireAuth>
       </NoSsr>

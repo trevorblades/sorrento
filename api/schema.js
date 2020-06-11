@@ -42,13 +42,26 @@ export const typeDefs = gql`
   type Organization {
     id: ID!
     name: String!
+    phone: String!
     accepting: Boolean!
+    queueLimit: Int!
+    averageHandleTime: Int!
+    activeAgents: Int!
+    keyword: String!
+    person: String!
+    welcomeMessage: String!
+    queueMessage: String!
+    queueEmptyMessage: String!
+    notAcceptingMessage: String!
+    readyMessage: String!
+    removedMessage: String!
+    notRemovedMessage: String!
+    limitExceededMessage: String!
   }
 
   type User {
     id: ID!
     name: String!
-    organization: Organization
   }
 
   type PhoneNumber {
@@ -192,12 +205,6 @@ export const resolvers = {
       customer.servedBy &&
       db('users')
         .where('id', customer.servedBy)
-        .first()
-  },
-  User: {
-    organization: (user, args, {db}) =>
-      db('organizations')
-        .where('id', user.organizationId)
         .first()
   }
 };
