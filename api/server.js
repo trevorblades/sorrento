@@ -1,12 +1,10 @@
 import basicAuth from 'basic-auth';
 import bcrypt from 'bcryptjs';
 import cors from 'cors';
-import expand from 'expand-template';
 import express from 'express';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import knex from 'knex';
-import pluralize from 'pluralize';
 import twilio from 'twilio';
 import {ApolloServer, AuthenticationError} from 'apollo-server-express';
 import {
@@ -16,10 +14,10 @@ import {
   resolvers,
   typeDefs
 } from './schema';
+import {createWelcomeMessage} from 'common';
 
 const db = knex(process.env.DATABASE_URL);
 const app = express();
-const template = expand();
 
 const origin =
   process.env.NODE_ENV === 'production'
@@ -58,7 +56,10 @@ app.post('/sms', async (req, res) => {
     .where('phone', req.body.To)
     .first();
 
-  if (req.body.Body.trim().toUpperCase() === organization.keyword) {
+  if (
+    req.body.Body.trim().toUpperCase() ===
+    organization.keyword.trim().toUpperCase()
+  ) {
     const condition = {
       servedAt: null,
       phone: req.body.From,
@@ -87,24 +88,7 @@ app.post('/sms', async (req, res) => {
         .first();
 
       if (peopleAhead < organization.queueLimit) {
-        // this value is calculated based on an EWT equation found here
-        // https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
-        const estimatedWaitTime = Math.round(
-          (organization.averageHandleTime * peopleAhead) /
-            organization.activeAgents
-        );
-
-        const message = template(organization.welcomeMessage, {
-          QUEUE_MESSAGE: peopleAhead
-            ? template(organization.queueMessage, {
-                IS: pluralize('is', peopleAhead),
-                PERSON: pluralize(organization.person, peopleAhead, true),
-                ESTIMATED_WAIT_TIME: estimatedWaitTime
-              })
-            : organization.queueEmptyMessage,
-          KEYWORD: organization.keyword
-        });
-
+        const message = createWelcomeMessage(organization, peopleAhead);
         twiml.message(message);
 
         const [customerServed] = await db('customers')

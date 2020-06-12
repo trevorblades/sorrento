@@ -1,4 +1,6 @@
 {
+  "name": "api",
+  "version": "1.0.0",
   "scripts": {
     "start": "nodemon -r esm -r dotenv/config server.js"
   },
@@ -8,14 +10,12 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "esm": "^3.2.25",
-    "expand-template": "^2.0.3",
     "express": "^4.17.1",
-    "graphql": "^15.0.0",
+    "graphql": "^14.6.0",
     "graphql-iso-date": "^3.6.1",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.1",
     "pg": "^8.0.3",
-    "pluralize": "^8.0.0",
     "twilio": "^3.43.0"
   },
   "devDependencies": {
