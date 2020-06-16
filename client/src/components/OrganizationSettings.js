@@ -61,7 +61,6 @@ export default function OrganizationSettings(props) {
                   value={format('(NNN) NNN-NNNN', organization.phone.slice(2))}
                   isDisabled
                 />
-                <FormHelperText>This can&apos;t be changed</FormHelperText>
               </FormControl>
               {/* TODO: use sliders for numbers */}
               <FormControl>

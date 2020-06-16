@@ -136,7 +136,7 @@ const server = new ApolloServer({
       };
     }
   },
-  context: async ({req, connection}) => {
+  async context({req, connection}) {
     if (connection) {
       return connection.context;
     }

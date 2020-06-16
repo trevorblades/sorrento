@@ -141,7 +141,7 @@ export const resolvers = {
     }
   },
   Mutation: {
-    serveCustomer: async (parent, args, {db, user}) => {
+    async serveCustomer(parent, args, {db, user}) {
       const [to] = await db('customers')
         .where(args)
         .andWhere('organizationId', user.organizationId)
@@ -174,7 +174,7 @@ export const resolvers = {
 
       return customerServed;
     },
-    removeCustomer: async (parent, args, {db, user}) => {
+    async removeCustomer(parent, args, {db, user}) {
       const [customerRemoved] = await db('customers')
         .where(args)
         .andWhere('organizationId', user.organizationId)
@@ -189,7 +189,7 @@ export const resolvers = {
 
       return customerRemoved;
     },
-    updateOrganization: async (parent, {input}, {db, user}) => {
+    async updateOrganization(parent, {input}, {db, user}) {
       const [organizationUpdated] = await db('organizations')
         .where('id', user.organizationId)
         .update(input)
