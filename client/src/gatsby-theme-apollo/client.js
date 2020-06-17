@@ -27,29 +27,32 @@ const authLink = new ApolloLink((operation, forward) => {
   return forward(operation);
 });
 
+let link = authLink.concat(httpLink);
+if (process.browser) {
+  link = split(
+    ({query}) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === 'OperationDefinition' &&
+        definition.operation === 'subscription'
+      );
+    },
+    new WebSocketLink({
+      uri: 'ws://localhost:4000/graphql',
+      options: {
+        reconnect: true,
+        connectionParams: () => ({
+          authToken: localStorage.getItem('sorrento:token')
+        })
+      }
+    }),
+    link
+  );
+}
+
 const client = new ApolloClient({
+  link,
   cache: new InMemoryCache(),
-  link: process.browser
-    ? split(
-        ({query}) => {
-          const definition = getMainDefinition(query);
-          return (
-            definition.kind === 'OperationDefinition' &&
-            definition.operation === 'subscription'
-          );
-        },
-        new WebSocketLink({
-          uri: 'ws://localhost:4000/graphql',
-          options: {
-            reconnect: true,
-            connectionParams: () => ({
-              authToken: localStorage.getItem('sorrento:token')
-            })
-          }
-        }),
-        authLink.concat(httpLink)
-      )
-    : authLink.concat(httpLink),
   resolvers: {
     Query: {
       isLoggedIn: () => Boolean(localStorage.getItem('sorrento:token'))
