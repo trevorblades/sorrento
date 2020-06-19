@@ -1,11 +1,21 @@
 {
   "private": true,
-  "workspaces": ["api", "client", "common"],
+  "workspaces": [
+    "api",
+    "client",
+    "common"
+  ],
+  "scripts": {
+    "api": "yarn workspace api start",
+    "client": "yarn workspace client start",
+    "start": "concurrently --kill-others-on-fail \"yarn api\" \"yarn client\""
+  },
   "eslintConfig": {
     "extends": "@trevorblades"
   },
   "devDependencies": {
     "@trevorblades/eslint-config": "^7.0.2",
+    "concurrently": "^5.2.0",
     "eslint": "^6.8.0"
   }
 }
