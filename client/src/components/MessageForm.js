@@ -5,6 +5,11 @@ import {
   FormHelperText,
   FormLabel,
   Input,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
   Stack,
   Textarea
 } from '@chakra-ui/core';
@@ -25,6 +30,20 @@ export default function MessageForm(props) {
               You may use the &#123;KEYWORD&#125; and &#123;QUEUE_MESSAGE&#125;
               variables in this message
             </FormHelperText>
+          </FormControl>
+          <FormControl>
+            <FormLabel>People in line</FormLabel>
+            <NumberInput
+              min={1}
+              onChange={props.setPeopleAhead}
+              value={props.peopleAhead}
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
           </FormControl>
           <FormControl>
             <FormLabel>
@@ -83,5 +102,7 @@ export default function MessageForm(props) {
 MessageForm.propTypes = {
   message: PropTypes.string.isRequired,
   organization: PropTypes.object.isRequired,
-  onInputChange: PropTypes.func.isRequired
+  onInputChange: PropTypes.func.isRequired,
+  setPeopleAhead: PropTypes.func.isRequired,
+  peopleAhead: PropTypes.number.isRequired
 };

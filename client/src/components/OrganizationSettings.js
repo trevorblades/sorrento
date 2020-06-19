@@ -136,20 +136,6 @@ export default function OrganizationSettings(props) {
                   </FormHelperText>
                 </FormControl>
                 <FormControl>
-                  <FormLabel>People ahead</FormLabel>
-                  <NumberInput
-                    min={1}
-                    onChange={setPeopleAhead}
-                    value={peopleAhead}
-                  >
-                    <NumberInputField />
-                    <NumberInputStepper>
-                      <NumberIncrementStepper />
-                      <NumberDecrementStepper />
-                    </NumberInputStepper>
-                  </NumberInput>
-                </FormControl>
-                <FormControl>
                   <FormLabel>Self-remove keyword</FormLabel>
                   <Input
                     name="keyword"
@@ -185,6 +171,8 @@ export default function OrganizationSettings(props) {
                   message={message}
                   organization={organization}
                   onInputChange={handleInputChange}
+                  peopleAhead={peopleAhead}
+                  setPeopleAhead={setPeopleAhead}
                 />
               </Box>
             </Box>
