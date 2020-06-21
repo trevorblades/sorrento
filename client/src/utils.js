@@ -56,3 +56,15 @@ export const GET_LOGGED_IN = gql`
     isLoggedIn @client
   }
 `;
+
+export const APP_QUERY = gql`
+  query AppQuery {
+    me {
+      name
+    }
+    organization {
+      ...OrganizationFragment
+    }
+  }
+  ${ORGANIZATION_FRAGMENT}
+`;

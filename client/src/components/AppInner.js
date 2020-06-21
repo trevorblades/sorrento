@@ -15,9 +15,11 @@ import {
   MenuItem,
   MenuList
 } from '@chakra-ui/core';
+import {Elements} from '@stripe/react-stripe-js';
 import {GET_LOGGED_IN} from '../utils';
 import {Link as GatsbyLink} from 'gatsby';
 import {gql} from '@apollo/client';
+import {loadStripe} from '@stripe/stripe-js';
 
 const LIST_PHONE_NUMBERS = gql`
   query ListPhoneNumbers {
@@ -27,6 +29,8 @@ const LIST_PHONE_NUMBERS = gql`
     }
   }
 `;
+
+const stripePromise = loadStripe(process.env.GATSBY_STRIPE_PUBLISHABLE_KEY);
 
 export default function AppInner({children, client, subscribeToMore, data}) {
   function logOut() {
@@ -41,11 +45,11 @@ export default function AppInner({children, client, subscribeToMore, data}) {
 
   if (!data.organization) {
     return (
-      <QueryLoader query={LIST_PHONE_NUMBERS} component={CreateOrganization}>
-        <Box m="auto">
+      <Elements stripe={stripePromise}>
+        <QueryLoader query={LIST_PHONE_NUMBERS} component={CreateOrganization}>
           <Button onClick={logOut}>Log out</Button>
-        </Box>
-      </QueryLoader>
+        </QueryLoader>
+      </Elements>
     );
   }
 

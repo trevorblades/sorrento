@@ -1,3 +1,4 @@
+import Stripe from 'stripe';
 import twilio from 'twilio';
 import {GraphQLDateTime} from 'graphql-iso-date';
 import {PubSub, UserInputError, gql, withFilter} from 'apollo-server-express';
@@ -16,6 +17,7 @@ export const typeDefs = gql`
   type Mutation {
     serveCustomer(id: ID!): Customer!
     removeCustomer(id: ID!): Customer
+    createOrganization(input: CreateOrganizationInput!): Organization!
     updateOrganization(input: UpdateOrganizationInput!): Organization!
   }
 
@@ -24,6 +26,13 @@ export const typeDefs = gql`
     customerServed: Customer
     customerRemoved: Customer
     organizationUpdated: Organization
+  }
+
+  input CreateOrganizationInput {
+    name: String!
+    phone: String!
+    source: String!
+    plan: String!
   }
 
   input UpdateOrganizationInput {
@@ -76,6 +85,7 @@ export const CUSTOMER_REMOVED = 'CUSTOMER_REMOVED';
 const ORGANIZATION_UPDATED = 'ORGANIZATION_UPDATED';
 
 export const pubsub = new PubSub();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -188,6 +198,35 @@ export const resolvers = {
       pubsub.publish(CUSTOMER_REMOVED, {customerRemoved});
 
       return customerRemoved;
+    },
+    async createOrganization(parent, {input}, {db, user}) {
+      // TODO: save customer id on user
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name,
+        source: input.source
+      });
+
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{plan: input.plan}]
+      });
+
+      // TODO: register phone number
+
+      const [organization] = await db('organizations')
+        .insert({
+          name: input.name,
+          phone: input.phone,
+          subscriptionId: subscription.id
+        })
+        .returning('*');
+
+      await db('users')
+        .update('organizationId', organization.id)
+        .where('id', user.id);
+
+      return organization;
     },
     async updateOrganization(parent, {input}, {db, user}) {
       const [organizationUpdated] = await db('organizations')

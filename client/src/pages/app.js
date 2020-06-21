@@ -10,6 +10,7 @@ import React from 'react';
 import RequireAuth from '../components/RequireAuth';
 import Waitlist from '../components/Waitlist';
 import {
+  APP_QUERY,
   CUSTOMER_FRAGMENT,
   ORGANIZATION_FRAGMENT,
   WAITLIST_QUERY
@@ -17,18 +18,6 @@ import {
 import {Flex} from '@chakra-ui/core';
 import {Router} from '@reach/router';
 import {gql} from '@apollo/client';
-
-const APP_QUERY = gql`
-  query AppQuery {
-    me {
-      name
-    }
-    organization {
-      ...OrganizationFragment
-    }
-  }
-  ${ORGANIZATION_FRAGMENT}
-`;
 
 const HISTORY_QUERY = gql`
   query HistoryQuery {
