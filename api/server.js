@@ -32,7 +32,7 @@ app.get('/auth', async (req, res) => {
 
   try {
     const user = await db('users')
-      .where('username', credentials.name)
+      .where('email', credentials.name)
       .first();
 
     if (!user || !bcrypt.compareSync(credentials.pass, user.password)) {
@@ -123,17 +123,10 @@ const server = new ApolloServer({
       }
 
       const {sub} = jwt.verify(authToken, process.env.JWT_SECRET);
-      const user = await db('users')
-        .where('id', sub)
-        .first();
-      if (!user) {
-        throw new Error('Invalid token');
-      }
-
-      return {
-        db,
-        user
-      };
+      const organizations = await db('members')
+        .where('userId', sub)
+        .pluck('organizationId');
+      return {organizations};
     }
   },
   async context({req, connection}) {
@@ -163,8 +156,8 @@ server.applyMiddleware({app});
 const httpServer = http.createServer(app);
 server.installSubscriptionHandlers(httpServer);
 
-httpServer.listen(process.env.PORT, () => {
+httpServer.listen(process.env.PORT, () =>
   console.log(
     `🚀 Server ready at http://localhost:${process.env.PORT}${server.graphqlPath}`
-  );
-});
+  )
+);

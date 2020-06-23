@@ -1,16 +1,21 @@
 import Stripe from 'stripe';
 import twilio from 'twilio';
+import {
+  ForbiddenError,
+  PubSub,
+  UserInputError,
+  gql,
+  withFilter
+} from 'apollo-server-express';
 import {GraphQLDateTime} from 'graphql-iso-date';
-import {PubSub, UserInputError, gql, withFilter} from 'apollo-server-express';
 
 export const typeDefs = gql`
   scalar DateTime
 
   type Query {
-    nowServing: Customer
-    customers(served: Boolean!): [Customer!]!
-    organization: Organization
-    phoneNumbers: [PhoneNumber!]!
+    organization(id: ID!): Organization!
+    organizations: [Organization!]!
+    phoneNumbers(limit: Int!): [PhoneNumber!]!
     me: User!
   }
 
@@ -36,6 +41,7 @@ export const typeDefs = gql`
   }
 
   input UpdateOrganizationInput {
+    id: ID!
     accepting: Boolean
   }
 
@@ -52,6 +58,7 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     phone: String!
+    customers(served: Boolean!): [Customer!]!
     accepting: Boolean!
     queueLimit: Int!
     averageHandleTime: Int!
@@ -71,6 +78,7 @@ export const typeDefs = gql`
   type User {
     id: ID!
     name: String!
+    nowServing: Customer
   }
 
   type PhoneNumber {
@@ -92,87 +100,105 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
+async function findOrCreateCustomer({db, user, source}) {
+  if (user.customerId) {
+    return stripe.customers.retrieve(user.customerId);
+  }
+
+  const customer = await stripe.customers.create({
+    email: user.email,
+    name: user.name,
+    source
+  });
+
+  await db('users')
+    .update('customerId', customer.id)
+    .where('id', user.id);
+
+  return customer;
+}
+
 export const resolvers = {
   DateTime: GraphQLDateTime,
   Query: {
-    nowServing: (parent, args, {db, user}) =>
-      db('customers')
-        .where('servedBy', user.id)
-        .orderBy('servedAt', 'desc')
-        .first(),
-    customers(parent, args, {db, user}) {
-      const query = db('customers')
-        .where('organizationId', user.organizationId)
-        [args.served ? 'whereNotNull' : 'whereNull']('servedAt')
-        .orderBy(
-          args.served ? 'servedAt' : 'waitingSince',
-          args.served ? 'desc' : 'asc'
-        );
-      return args.served
-        ? query.whereRaw('"servedAt" > now() - interval \'7 days\'')
-        : query;
-    },
-    organization: (parent, args, {db, user}) =>
+    organizations: (parent, args, {db, user}) =>
       db('organizations')
-        .where('id', user.organizationId)
-        .first(),
-    phoneNumbers: () =>
-      client.availablePhoneNumbers('US').tollFree.list({limit: 3}),
+        .join('members', 'organizations.id', '=', 'members.organizationId')
+        .where('members.userId', user.id),
+    async organization(parent, {id}, {db, user}) {
+      const organizations = await db('members')
+        .where('userId', user.id)
+        .pluck('organizationId');
+
+      if (!organizations.includes(id)) {
+        throw new ForbiddenError('You do not have access to this organization');
+      }
+
+      return db('organizations')
+        .where({id})
+        .first();
+    },
+    phoneNumbers: (parent, {limit}) =>
+      client.availablePhoneNumbers('US').tollFree.list({limit}),
     me: (parent, args, {user}) => user
   },
   Subscription: {
     customerAdded: {
       subscribe: withFilter(
         () => pubsub.asyncIterator(CUSTOMER_ADDED),
-        (payload, args, {user}) =>
-          payload.customerAdded.organizationId === user.organizationId
+        (payload, args, {organizations}) =>
+          organizations.includes(payload.customerAdded.organizationId)
       )
     },
     customerServed: {
       subscribe: withFilter(
         () => pubsub.asyncIterator(CUSTOMER_SERVED),
-        (payload, args, {user}) =>
-          payload.customerServed.organizationId === user.organizationId
+        (payload, args, {organizations}) =>
+          organizations.includes(payload.customerServed.organizationId)
       )
     },
     customerRemoved: {
       subscribe: withFilter(
         () => pubsub.asyncIterator(CUSTOMER_REMOVED),
-        (payload, args, {user}) =>
-          payload.customerRemoved.organizationId === user.organizationId
+        (payload, args, {organizations}) =>
+          organizations.includes(payload.customerRemoved.organizationId)
       )
     },
     organizationUpdated: {
       subscribe: withFilter(
         () => pubsub.asyncIterator(ORGANIZATION_UPDATED),
-        (payload, args, {user}) =>
-          payload.organizationUpdated.id === user.organizationId
+        (payload, args, {organizations}) =>
+          organizations.includes(payload.organizationUpdated.id)
       )
     }
   },
   Mutation: {
     async serveCustomer(parent, args, {db, user}) {
-      const [to] = await db('customers')
-        .where(args)
-        .andWhere('organizationId', user.organizationId)
-        .pluck('phone');
+      const query = db('customers').where(args);
+      const customer = await query.first();
 
-      if (!to) {
+      if (!customer) {
         throw new UserInputError('Invalid customer');
       }
 
       const organization = await db('organizations')
-        .where('id', user.organizationId)
+        .where({
+          id: customer.organizationId,
+          owner: user.id
+        })
         .first();
+
+      if (!organization) {
+        throw new ForbiddenError('You do not have access to this customer');
+      }
 
       const message = await client.messages.create({
         body: organization.readyMessage,
         from: organization.phone,
-        to
+        to: customer.phone
       });
 
-      const [customerServed] = await db('customers')
-        .where(args)
+      const [customerServed] = await query
         .update({
           receipt: message.sid,
           servedAt: new Date(),
@@ -185,25 +211,26 @@ export const resolvers = {
       return customerServed;
     },
     async removeCustomer(parent, args, {db, user}) {
-      const [customerRemoved] = await db('customers')
-        .where(args)
-        .andWhere('organizationId', user.organizationId)
-        .del()
-        .returning('*');
+      const query = db('customers').where(args);
+      const [id] = await query.pluck('organizationId');
+      const [owner] = await db('organizations')
+        .where({id})
+        .pluck('owner');
 
-      if (!customerRemoved) {
-        throw new UserInputError('Invalid customer');
+      if (owner !== user.id) {
+        throw new ForbiddenError('You do not have access to this customer');
       }
+
+      const [customerRemoved] = await query.del().returning('*');
 
       pubsub.publish(CUSTOMER_REMOVED, {customerRemoved});
 
       return customerRemoved;
     },
     async createOrganization(parent, {input}, {db, user}) {
-      // TODO: save customer id on user
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
+      const customer = await findOrCreateCustomer({
+        db,
+        user,
         source: input.source
       });
 
@@ -218,21 +245,28 @@ export const resolvers = {
         .insert({
           name: input.name,
           phone: input.phone,
+          owner: user.id,
           subscriptionId: subscription.id
         })
         .returning('*');
 
-      await db('users')
-        .update('organizationId', organization.id)
-        .where('id', user.id);
+      await db('members').insert({
+        userId: user.id,
+        organizationId: organization.id
+      });
 
       return organization;
     },
-    async updateOrganization(parent, {input}, {db, user}) {
-      const [organizationUpdated] = await db('organizations')
-        .where('id', user.organizationId)
-        .update(input)
-        .returning('*');
+    async updateOrganization(parent, args, {db, user}) {
+      const {id, ...input} = args.input;
+      const query = db('organizations').where({id});
+      const [owner] = await query.pluck('owner');
+
+      if (owner !== user.id) {
+        throw new ForbiddenError('You do not have access to this organization');
+      }
+
+      const [organizationUpdated] = await query.update(input).returning('*');
 
       pubsub.publish(ORGANIZATION_UPDATED, {organizationUpdated});
 
@@ -244,6 +278,32 @@ export const resolvers = {
       customer.servedBy &&
       db('users')
         .where('id', customer.servedBy)
+        .first()
+  },
+  Organization: {
+    async customers(organization, {served}, {db, user}) {
+      const organizations = await db('members')
+        .where('userId', user.id)
+        .pluck('organizationId');
+
+      if (!organizations.includes(organization.id)) {
+        throw new ForbiddenError('You do not have access to these customers');
+      }
+
+      const query = db('customers')
+        .where('organizationId', organization.id)
+        [served ? 'whereNotNull' : 'whereNull']('servedAt')
+        .orderBy(served ? 'servedAt' : 'waitingSince', served ? 'desc' : 'asc');
+      return served
+        ? query.whereRaw('"servedAt" > now() - interval \'7 days\'')
+        : query;
+    }
+  },
+  User: {
+    nowServing: (user, args, {db}) =>
+      db('customers')
+        .where('servedBy', user.id)
+        .orderBy('servedAt', 'desc')
         .first()
   }
 };
