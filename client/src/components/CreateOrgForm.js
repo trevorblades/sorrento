@@ -13,7 +13,7 @@ import {
   useTheme
 } from '@chakra-ui/core';
 import {CardElement, useElements, useStripe} from '@stripe/react-stripe-js';
-import {ORGANIZATION_FRAGMENT} from '../utils';
+import {LIST_ORGANIZATIONS, ORGANIZATION_FRAGMENT} from '../utils';
 import {gql, useMutation} from '@apollo/client';
 import {graphql, useStaticQuery} from 'gatsby';
 
@@ -35,16 +35,16 @@ export default function CreateOrgForm(props) {
   const [phoneNumbersLoaded, setPhoneNumbersLoaded] = useState(false);
 
   const [createOrganization] = useMutation(CREATE_ORGANIZATION, {
-    // update(cache, {data}) {
-    //   const {me} = cache.readQuery({query: APP_QUERY});
-    //   cache.writeQuery({
-    //     query: APP_QUERY,
-    //     data: {
-    //       me,
-    //       organization: data.createOrganization
-    //     }
-    //   });
-    // }
+    update(cache, result) {
+      const data = cache.readQuery({query: LIST_ORGANIZATIONS});
+      cache.writeQuery({
+        query: LIST_ORGANIZATIONS,
+        data: {
+          ...data,
+          organizations: [...data.organizations, result.data.createOrganization]
+        }
+      });
+    }
   });
 
   const {allStripePlan} = useStaticQuery(

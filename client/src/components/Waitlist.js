@@ -33,30 +33,39 @@ function updateQuery(prev, {subscriptionData}) {
   const {customerServed, customerRemoved} = subscriptionData.data;
   return {
     ...prev,
-    customers: prev.customers.filter(
-      customer => customer.id !== (customerServed || customerRemoved).id
-    )
+    organization: {
+      ...prev.organization,
+      customers: prev.customers.filter(
+        customer => customer.id !== (customerServed || customerRemoved).id
+      )
+    }
   };
 }
 
-function update(cache, {data}) {
-  const {customers} = cache.readQuery({query: WAITLIST_QUERY});
+function update(cache, result) {
+  const data = cache.readQuery({query: WAITLIST_QUERY});
   cache.writeQuery({
     query: WAITLIST_QUERY,
     data: {
-      customers,
-      nowServing: data.serveCustomer
+      ...data,
+      me: {
+        ...data.me,
+        nowServing: result.data.serveCustomer
+      }
     }
   });
 }
 
-export default function Waitlist({data, subscribeToMore}) {
+export default function Waitlist({customers, nowServing, subscribeToMore}) {
   useEffectOnce(() =>
     subscribeToMore({
       document: ON_CUSTOMER_ADDED,
       updateQuery: (prev, {subscriptionData}) => ({
         ...prev,
-        customers: [subscriptionData.data.customerAdded, ...prev.customers]
+        organization: {
+          ...prev.organization,
+          customers: [subscriptionData.data.customerAdded, ...prev.customers]
+        }
       })
     })
   );
@@ -78,7 +87,7 @@ export default function Waitlist({data, subscribeToMore}) {
   return (
     <>
       <List position="relative" px={{lg: 6}}>
-        {data.customers.map((customer, index) => (
+        {customers.map((customer, index) => (
           <ListItem mx="auto" maxW="containers.lg" key={customer.id}>
             <Box
               py={[3, 4]}
@@ -121,13 +130,13 @@ export default function Waitlist({data, subscribeToMore}) {
         bottom="0"
       >
         <Flex maxW="containers.lg" mx="auto" align="center">
-          {data.nowServing && (
+          {nowServing && (
             <Box mr="4" overflow="hidden">
               <Text color="gray.500" fontWeight="medium" fontSize="sm">
                 Now serving
               </Text>
               <Text fontWeight="medium" isTruncated>
-                {data.nowServing.name}
+                {nowServing.name}
               </Text>
             </Box>
           )}
@@ -138,11 +147,11 @@ export default function Waitlist({data, subscribeToMore}) {
             ml="auto"
             rightIcon={FaArrowRight}
             flexShrink="0"
-            isDisabled={!data.customers.length}
+            isDisabled={!customers.length}
             mutationOptions={{
               update,
               variables: {
-                id: data.customers[0]?.id
+                id: customers[0]?.id
               }
             }}
           />
@@ -154,5 +163,6 @@ export default function Waitlist({data, subscribeToMore}) {
 
 Waitlist.propTypes = {
   subscribeToMore: PropTypes.func.isRequired,
-  data: PropTypes.object.isRequired
+  nowServing: PropTypes.object.isRequired,
+  customers: PropTypes.array.isRequired
 };

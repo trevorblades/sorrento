@@ -1,8 +1,8 @@
 import NavLink from './NavLink';
-import React, {useContext} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {
   Box,
-  Button,
   DarkMode,
   Flex,
   Heading,
@@ -16,10 +16,8 @@ import {
 } from '@chakra-ui/core';
 import {FaEllipsisH} from 'react-icons/fa';
 import {Link as GatsbyLink} from 'gatsby';
-import {UserContext} from '../utils';
 
-export default function Header() {
-  const {user, logOut} = useContext(UserContext);
+export default function Header(props) {
   return (
     <Flex
       h="12"
@@ -77,10 +75,11 @@ export default function Header() {
           </MenuList>
         </Menu>
       </Box>
-      <div>{user.name}</div>
-      <Button onClick={logOut} size="sm">
-        Log out
-      </Button>
+      {props.children}
     </Flex>
   );
 }
+
+Header.propTypes = {
+  children: PropTypes.node.isRequired
+};

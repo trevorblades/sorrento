@@ -258,15 +258,22 @@ export const resolvers = {
       return organization;
     },
     async updateOrganization(parent, args, {db, user}) {
-      const {id, ...input} = args.input;
-      const query = db('organizations').where({id});
-      const [owner] = await query.pluck('owner');
+      const organizations = await db('members')
+        .where({
+          admin: true,
+          userId: user.id
+        })
+        .pluck('organizationId');
 
-      if (owner !== user.id) {
+      const {id, ...input} = args.input;
+      if (!organizations.includes(id)) {
         throw new ForbiddenError('You do not have access to this organization');
       }
 
-      const [organizationUpdated] = await query.update(input).returning('*');
+      const [organizationUpdated] = await db('organizations')
+        .where({id})
+        .update(input)
+        .returning('*');
 
       pubsub.publish(ORGANIZATION_UPDATED, {organizationUpdated});
 

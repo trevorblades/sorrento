@@ -1,22 +1,37 @@
 import CreateOrgButton from './CreateOrgButton';
 import CreateOrgForm from './CreateOrgForm';
-import React, {useContext} from 'react';
-import {Box, Button, Flex, Heading, Text} from '@chakra-ui/core';
+import React from 'react';
+import UserStatus from './UserStatus';
+import {Box, Button, Flex, Heading, Spinner, Text} from '@chakra-ui/core';
 import {Elements} from '@stripe/react-stripe-js';
 import {Link as GatsbyLink} from 'gatsby';
-import {UserContext} from '../utils';
+import {LIST_ORGANIZATIONS} from '../utils';
 import {loadStripe} from '@stripe/stripe-js';
+import {useQuery} from '@apollo/client';
 
 const stripePromise = loadStripe(process.env.GATSBY_STRIPE_PUBLISHABLE_KEY);
 
 export default function AppInner() {
-  const {user, logOut, organizations} = useContext(UserContext);
+  const {data, loading, error} = useQuery(LIST_ORGANIZATIONS);
+
+  if (loading) {
+    return (
+      <Box m="auto">
+        <Spinner />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return <Text color="red.500">{error.message}</Text>;
+  }
+
   return (
     <Box w="full" maxW="containers.sm" m="auto">
       <Elements stripe={stripePromise}>
-        {organizations.length ? (
+        {data.organizations.length ? (
           <Flex>
-            {organizations.map(organization => (
+            {data.organizations.map(organization => (
               <Button
                 as={GatsbyLink}
                 to={`/app/org/${organization.id}`}
@@ -34,10 +49,7 @@ export default function AppInner() {
           </>
         )}
       </Elements>
-      <Flex align="center" justify="center">
-        <Text>Logged in as {user.name}</Text>
-        <Button onClick={logOut}>Log out</Button>
-      </Flex>
+      <UserStatus user={data.me} />
     </Box>
   );
 }
