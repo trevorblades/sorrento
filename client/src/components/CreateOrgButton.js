@@ -7,7 +7,8 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalFooter,
-  ModalHeader
+  ModalHeader,
+  ModalOverlay
 } from '@chakra-ui/core';
 
 export default function CreateOrgButton() {
@@ -16,6 +17,7 @@ export default function CreateOrgButton() {
     <>
       <Button onClick={() => setModalOpen(true)}>Create org</Button>
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+        <ModalOverlay />
         <ModalContent>
           <ModalHeader>New organization</ModalHeader>
           <ModalCloseButton />

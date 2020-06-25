@@ -8,7 +8,11 @@ export default function Org(props) {
   return (
     <Layout>
       <RequireAuth>
-        <OrgInner variables={{organizationId: props['*']}} />
+        <OrgInner
+          queryOptions={{
+            variables: {organizationId: props['*']}
+          }}
+        />
       </RequireAuth>
     </Layout>
   );

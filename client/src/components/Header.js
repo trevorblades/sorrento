@@ -13,7 +13,7 @@ export default function Header(props) {
       top="0"
       zIndex="sticky"
       bg="gray.900"
-      px="6"
+      px={[5, 6]}
     >
       <Heading mr="auto" as="h1" fontSize="2xl" color="white">
         <Link _hover={{textDecor: 'none'}} as={GatsbyLink} to="/">

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   Avatar,
   Box,
@@ -10,15 +10,64 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Stack,
-  Text
+  Text,
+  Textarea
 } from '@chakra-ui/core';
 import {FaCaretDown, FaCog, FaSignOutAlt} from 'react-icons/fa';
 import {Link as GatsbyLink} from 'gatsby';
 import {LogOutContext} from '../utils';
+import {gql, useQuery} from '@apollo/client';
+
+const GET_ORG_DETAILS = gql`
+  query GetOrgDetails($id: ID!) {
+    organization(id: $id) {
+      welcomeMessage
+    }
+  }
+`;
+
+function OrgSettingsForm({queryOptions}) {
+  const {data, loading, error} = useQuery(GET_ORG_DETAILS, queryOptions);
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (loading) {
+    return <Text color="red.500">{error.message}</Text>;
+  }
+
+  return (
+    <>
+      <ModalBody>
+        <Textarea
+          resize="none"
+          placeholder="Welcome message"
+          defaultValue={data.organization.welcomeMessage}
+        />
+      </ModalBody>
+      <ModalFooter>
+        <Button>Save changes</Button>
+      </ModalFooter>
+    </>
+  );
+}
+
+OrgSettingsForm.propTypes = {
+  queryOptions: PropTypes.object.isRequired
+};
 
 export default function UserMenu(props) {
   const logOut = useContext(LogOutContext);
+  const [modalOpen, setModalOpen] = useState(false);
   return (
     <>
       <Menu>
@@ -34,7 +83,7 @@ export default function UserMenu(props) {
           <Avatar mr="2" size="sm" fontSize="md" name={props.user.name} />
           <FaCaretDown />
         </MenuButton>
-        <MenuList pt="none" placement="bottom-end">
+        <MenuList shadow="lg" pt="none" placement="bottom-end">
           <Stack p="4" spacing="2" bg="gray.50" align="center">
             <Avatar name={props.user.name} />
             <Box fontSize="sm" textAlign="center">
@@ -50,7 +99,7 @@ export default function UserMenu(props) {
             </Link>
           </Box>
           <MenuDivider />
-          <MenuItem>
+          <MenuItem onClick={() => setModalOpen(true)}>
             <Box as={FaCog} mr="2" />
             Organization settings
           </MenuItem>
@@ -60,6 +109,20 @@ export default function UserMenu(props) {
           </MenuItem>
         </MenuList>
       </Menu>
+      <Modal size="2xl" isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{props.organization.name}</ModalHeader>
+          <ModalCloseButton />
+          <OrgSettingsForm
+            queryOptions={{
+              variables: {
+                id: props.organization.id
+              }
+            }}
+          />
+        </ModalContent>
+      </Modal>
     </>
   );
 }

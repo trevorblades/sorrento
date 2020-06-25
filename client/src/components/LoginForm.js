@@ -38,6 +38,7 @@ export default function LoginForm(props) {
         autoComplete="off"
         m="auto"
         w="full"
+        p="10"
         maxW={{md: 400}}
       >
         <Heading mb="8" textAlign="center" fontSize="4xl">

@@ -121,7 +121,7 @@ export default function Waitlist({customers, nowServing, subscribeToMore}) {
         ))}
       </List>
       <Box
-        px="4"
+        px={[5, 6]}
         py="3"
         bg="gray.900"
         color="white"
