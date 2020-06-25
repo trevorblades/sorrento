@@ -5,11 +5,7 @@ import {formatDistanceToNow} from 'date-fns';
 
 export default function Timer(props) {
   const [distance, setDistance] = useState(formatDistanceToNow(props.date));
-
-  useInterval(() => {
-    setDistance(formatDistanceToNow(props.date));
-  }, 1000);
-
+  useInterval(() => setDistance(formatDistanceToNow(props.date)), 1000);
   return <>Added {distance} ago</>;
 }
 

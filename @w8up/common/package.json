@@ -1,5 +1,5 @@
 {
-  "name": "common",
+  "name": "@w8up/common",
   "version": "1.0.0",
   "dependencies": {
     "expand-template": "^2.0.3",

@@ -1,4 +1,7 @@
+import {createContext} from 'react';
 import {gql} from '@apollo/client';
+
+export const LogOutContext = createContext();
 
 export const CUSTOMER_FRAGMENT = gql`
   fragment CustomerFragment on Customer {
@@ -21,16 +24,41 @@ export const ORGANIZATION_FRAGMENT = gql`
   }
 `;
 
-export const WAITLIST_QUERY = gql`
-  query WaitlistQuery {
-    customers(served: false) {
-      ...CustomerFragment
+export const LIST_ORGANIZATIONS = gql`
+  query ListOrganizations {
+    me {
+      id
+      name
     }
-    nowServing {
+    organizations {
+      id
       name
     }
   }
-  ${CUSTOMER_FRAGMENT}
+`;
+
+export const WAITLIST_QUERY = gql`
+  query WaitlistQuery($organizationId: ID!) {
+    me {
+      id
+      name
+      email
+      nowServing {
+        name
+      }
+    }
+    organization(id: $organizationId) {
+      id
+      name
+      accepting
+      customers(served: false) {
+        id
+        name
+        phone
+        waitingSince
+      }
+    }
+  }
 `;
 
 export const SERVE_CUSTOMER = gql`
@@ -49,22 +77,4 @@ export const ON_CUSTOMER_SERVED = gql`
     }
   }
   ${CUSTOMER_FRAGMENT}
-`;
-
-export const GET_LOGGED_IN = gql`
-  query GetLoggedIn {
-    isLoggedIn @client
-  }
-`;
-
-export const APP_QUERY = gql`
-  query AppQuery {
-    me {
-      name
-    }
-    organization {
-      ...OrganizationFragment
-    }
-  }
-  ${ORGANIZATION_FRAGMENT}
 `;

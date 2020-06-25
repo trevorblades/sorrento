@@ -1,19 +1,30 @@
+import PropTypes from 'prop-types';
 import React from 'react';
-import {ORGANIZATION_FRAGMENT} from '../utils';
+import useEffectOnce from 'react-use/lib/useEffectOnce';
 import {Switch} from '@chakra-ui/core';
 import {gql, useMutation} from '@apollo/client';
+
+const ON_ORGANIZATION_UPDATED = gql`
+  subscription OnOrganizationUpdated {
+    organizationUpdated {
+      id
+      accepting
+    }
+  }
+`;
 
 const UPDATE_ORGANIZATION = gql`
   mutation UpdateOrganization($input: UpdateOrganizationInput!) {
     updateOrganization(input: $input) {
-      ...OrganizationFragment
+      id
+      accepting
     }
   }
-  ${ORGANIZATION_FRAGMENT}
 `;
 
-export default function AcceptingSwitch(props) {
+export default function AcceptingSwitch({organization, subscribeToMore}) {
   const [updateOrganization] = useMutation(UPDATE_ORGANIZATION);
+  useEffectOnce(() => subscribeToMore({document: ON_ORGANIZATION_UPDATED}));
 
   function handleChange(event) {
     const {checked: accepting} = event.target;
@@ -24,6 +35,7 @@ export default function AcceptingSwitch(props) {
       updateOrganization({
         variables: {
           input: {
+            id: organization.id,
             accepting
           }
         }
@@ -32,6 +44,16 @@ export default function AcceptingSwitch(props) {
   }
 
   return (
-    <Switch color="green" display="flex" onChange={handleChange} {...props} />
+    <Switch
+      color="green"
+      display="flex"
+      onChange={handleChange}
+      isChecked={organization.accepting}
+    />
   );
 }
+
+AcceptingSwitch.propTypes = {
+  organization: PropTypes.object.isRequired,
+  subscribeToMore: PropTypes.func.isRequired
+};
