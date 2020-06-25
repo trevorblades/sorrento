@@ -6,18 +6,18 @@ function ChatBubbleTail(props) {
   return <Box position="absolute" bottom="-2px" h="20px" {...props} />;
 }
 
-export default function ChatBubble(props) {
-  const color = props.fromThem ? 'gray.200' : 'blue.400';
+export default function ChatBubble({fromThem, children, ...props}) {
+  const color = fromThem ? 'gray.200' : 'blue.400';
   const backTailProps = {
-    [props.fromThem ? 'left' : 'right']: '-7px',
-    [`border${props.fromThem ? 'Left' : 'Right'}Color`]: color,
-    [`border${props.fromThem ? 'Left' : 'Right'}Width`]: '20px',
-    [`borderBottom${props.fromThem ? 'Right' : 'Left'}Radius`]: '16px 14px'
+    [fromThem ? 'left' : 'right']: '-7px',
+    [`border${fromThem ? 'Left' : 'Right'}Color`]: color,
+    [`border${fromThem ? 'Left' : 'Right'}Width`]: '20px',
+    [`borderBottom${fromThem ? 'Right' : 'Left'}Radius`]: '16px 14px'
   };
 
   const frontTailProps = {
-    [props.fromThem ? 'left' : 'right']: props.fromThem ? '4px' : '-56px',
-    [`borderBottom${props.fromThem ? 'Right' : 'Left'}Radius`]: '10px'
+    [fromThem ? 'left' : 'right']: fromThem ? '4px' : '-56px',
+    [`borderBottom${fromThem ? 'Right' : 'Left'}Radius`]: '10px'
   };
 
   return (
@@ -30,12 +30,12 @@ export default function ChatBubble(props) {
       fontSize="20px"
       lineHeight="24px"
       position="relative"
-      mb="12px"
-      color={props.fromThem ? undefined : 'white'}
-      alignSelf={props.fromThem ? 'flex-start' : 'flex-end'}
+      color={fromThem ? undefined : 'white'}
+      alignSelf={fromThem ? 'flex-start' : 'flex-end'}
       wordBreak="break-word"
+      {...props}
     >
-      {props.children}
+      {children}
       <ChatBubbleTail transform="translate(0, -2px)" {...backTailProps} />
       <ChatBubbleTail
         w="26px"

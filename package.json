@@ -3,7 +3,7 @@
   "workspaces": [
     "api",
     "client",
-    "common"
+    "@w8up/common"
   ],
   "scripts": {
     "api": "yarn workspace api start",

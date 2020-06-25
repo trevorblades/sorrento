@@ -14,7 +14,7 @@ import {
   resolvers,
   typeDefs
 } from './schema';
-import {createWelcomeMessage} from 'common';
+import {createWelcomeMessage} from '@w8up/common';
 
 const db = knex(process.env.DATABASE_URL);
 const app = express();

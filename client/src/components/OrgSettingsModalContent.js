@@ -7,6 +7,7 @@ import {gql, useQuery} from '@apollo/client';
 const GET_ORG_DETAILS = gql`
   query GetOrgDetails($id: ID!) {
     organization(id: $id) {
+      id
       name
       phone
       queueLimit

@@ -67,7 +67,12 @@ export default function UserMenu(props) {
           </MenuItem>
         </MenuList>
       </Menu>
-      <Modal size="2xl" isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal
+        closeOnOverlayClick={false}
+        size="3xl"
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Organization settings</ModalHeader>
