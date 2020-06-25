@@ -42,6 +42,7 @@ export const WAITLIST_QUERY = gql`
     me {
       id
       name
+      email
       nowServing {
         name
       }
