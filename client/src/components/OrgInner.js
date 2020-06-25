@@ -8,11 +8,13 @@ import {Box, Flex, Spinner, Text} from '@chakra-ui/core';
 import {WAITLIST_QUERY} from '../utils';
 import {useQuery} from '@apollo/client';
 
-export default function OrgInner({queryOptions}) {
-  const {data, loading, error, subscribeToMore} = useQuery(
-    WAITLIST_QUERY,
-    queryOptions
-  );
+export default function OrgInner({organizationId}) {
+  const {data, loading, error, subscribeToMore} = useQuery(WAITLIST_QUERY, {
+    fetchPolicy: 'network-only',
+    variables: {
+      organizationId
+    }
+  });
 
   if (loading) {
     return (
@@ -48,5 +50,5 @@ export default function OrgInner({queryOptions}) {
 }
 
 OrgInner.propTypes = {
-  queryOptions: PropTypes.object.isRequired
+  organizationId: PropTypes.string.isRequired
 };
