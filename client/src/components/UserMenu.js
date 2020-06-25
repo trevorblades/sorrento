@@ -1,3 +1,4 @@
+import OrgSettingsModalContent from './OrgSettingsModalContent';
 import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 import {
@@ -11,59 +12,16 @@ import {
   MenuItem,
   MenuList,
   Modal,
-  ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
   Stack,
-  Text,
-  Textarea
+  Text
 } from '@chakra-ui/core';
 import {FaCaretDown, FaCog, FaSignOutAlt} from 'react-icons/fa';
 import {Link as GatsbyLink} from 'gatsby';
 import {LogOutContext} from '../utils';
-import {gql, useQuery} from '@apollo/client';
-
-const GET_ORG_DETAILS = gql`
-  query GetOrgDetails($id: ID!) {
-    organization(id: $id) {
-      welcomeMessage
-    }
-  }
-`;
-
-function OrgSettingsForm({queryOptions}) {
-  const {data, loading, error} = useQuery(GET_ORG_DETAILS, queryOptions);
-
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
-
-  if (loading) {
-    return <Text color="red.500">{error.message}</Text>;
-  }
-
-  return (
-    <>
-      <ModalBody>
-        <Textarea
-          resize="none"
-          placeholder="Welcome message"
-          defaultValue={data.organization.welcomeMessage}
-        />
-      </ModalBody>
-      <ModalFooter>
-        <Button>Save changes</Button>
-      </ModalFooter>
-    </>
-  );
-}
-
-OrgSettingsForm.propTypes = {
-  queryOptions: PropTypes.object.isRequired
-};
 
 export default function UserMenu(props) {
   const logOut = useContext(LogOutContext);
@@ -112,9 +70,9 @@ export default function UserMenu(props) {
       <Modal size="2xl" isOpen={modalOpen} onClose={() => setModalOpen(false)}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{props.organization.name}</ModalHeader>
+          <ModalHeader>Organization settings</ModalHeader>
           <ModalCloseButton />
-          <OrgSettingsForm
+          <OrgSettingsModalContent
             queryOptions={{
               variables: {
                 id: props.organization.id
