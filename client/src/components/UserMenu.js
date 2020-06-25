@@ -13,7 +13,7 @@ import {
   Stack,
   Text
 } from '@chakra-ui/core';
-import {FaCaretDown, FaSignOutAlt} from 'react-icons/fa';
+import {FaCaretDown, FaCog, FaSignOutAlt} from 'react-icons/fa';
 import {Link as GatsbyLink} from 'gatsby';
 import {LogOutContext} from '../utils';
 
@@ -50,7 +50,11 @@ export default function UserMenu(props) {
             </Link>
           </Box>
           <MenuDivider />
-          <MenuItem fontSize="md" onClick={logOut}>
+          <MenuItem>
+            <Box as={FaCog} mr="2" />
+            Organization settings
+          </MenuItem>
+          <MenuItem onClick={logOut}>
             <Box as={FaSignOutAlt} mr="2" />
             Log out
           </MenuItem>

@@ -34,7 +34,7 @@ export default function AppInner() {
             {data.organizations.map(organization => (
               <Button
                 as={GatsbyLink}
-                to={`/app/org/${organization.id}`}
+                to={`/app/o/${organization.id}`}
                 key={organization.id}
               >
                 {organization.name}
