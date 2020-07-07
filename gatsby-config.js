@@ -10,7 +10,7 @@ module.exports = {
     {
       resolve: 'gatsby-source-instagram',
       options: {
-        username: 'sorrentobarbers'
+        username: '27353244'
       }
     },
     {
