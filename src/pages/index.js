@@ -2,30 +2,22 @@ import React from 'react';
 import logo from '../assets/logo.svg';
 import {Box, Flex, Heading, Text} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
-// import {graphql, useStaticQuery} from 'gatsby';
-
-function HomePageHeading(props) {
-  return (
-    <Heading as="h3" fontSize="5xl" textTransform="uppercase" {...props} />
-  );
-}
+import {graphql, useStaticQuery} from 'gatsby';
 
 export default function Home() {
-  // FIXME: uncomment when issue below is addressed
-  // https://github.com/oorestisime/gatsby-source-instagram/issues/24
-  // const {allInstaNode} = useStaticQuery(
-  //   graphql`
-  //     {
-  //       allInstaNode(sort: {order: DESC, fields: timestamp}) {
-  //         nodes {
-  //           original
-  //           id
-  //           timestamp
-  //         }
-  //       }
-  //     }
-  //   `
-  // );
+  const {allInstaNode} = useStaticQuery(
+    graphql`
+      {
+        allInstaNode(sort: {order: DESC, fields: timestamp}) {
+          nodes {
+            original
+            id
+            timestamp
+          }
+        }
+      }
+    `
+  );
 
   return (
     <>
@@ -40,26 +32,30 @@ export default function Home() {
         px="20"
       >
         <Box mt="200px" mb="16" maxW="599px" as="img" src={logo} />
-        <HomePageHeading mb="8">2417 E Hastings St, Vancouver</HomePageHeading>
-        <HomePageHeading>
+        <Heading fontSize="5xl" mb="8">
+          2417 E Hastings St, Vancouver
+        </Heading>
+        <Heading fontSize="5xl">
           Tuesday: 8 AM - 1 PM
           <br />
           Wednesday - Saturday: 8 AM - 6 PM
           <br />
           Sunday: 10 AM - 3 PM
-        </HomePageHeading>
+        </Heading>
       </Flex>
       <Box px="20" mb="120px">
-        <HomePageHeading mb="8">Monday: Closed</HomePageHeading>
-        <HomePageHeading>
+        <Heading fontSize="5xl" mb="8">
+          Monday: Closed
+        </Heading>
+        <Heading fontSize="5xl">
           Join the waitlist
           <br />
           Text your name to (604) 330-8137
-        </HomePageHeading>
+        </Heading>
       </Box>
-      {/* <Flex h="500px" overflow="hidden" bg="black">
-        {allInstaNode.nodes.map(instaNode => (
-          <PseudoBox
+      <Flex h="500px" overflow="hidden" bg="black">
+        {allInstaNode.nodes.map((instaNode) => (
+          <Box
             as="a"
             h="full"
             flexShrink="0"
@@ -71,9 +67,9 @@ export default function Home() {
             _active={{opacity: 0.8}}
           >
             <Box as="img" h="full" loading="lazy" src={instaNode.original} />
-          </PseudoBox>
+          </Box>
         ))}
-      </Flex> */}
+      </Flex>
       <Box p="20" textAlign="center">
         <Text fontSize="2xl">
           &copy; {new Date().getFullYear()} Sorrento Barbers
