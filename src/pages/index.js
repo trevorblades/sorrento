@@ -2,10 +2,10 @@ import React from 'react';
 import logo from '../assets/logo.svg';
 import {Box, Flex, Heading, Text} from '@chakra-ui/core';
 import {Helmet} from 'react-helmet';
-import {graphql, useStaticQuery} from 'gatsby';
+// import {graphql, useStaticQuery} from 'gatsby';
 
 export default function Home() {
-  const {allInstaNode} = useStaticQuery(
+  /* const {allInstaNode} = useStaticQuery(
     graphql`
       {
         allInstaNode(sort: {order: DESC, fields: timestamp}) {
@@ -17,7 +17,7 @@ export default function Home() {
         }
       }
     `
-  );
+  ); */
 
   return (
     <>
@@ -51,7 +51,7 @@ export default function Home() {
           Text your name to (604) 330-8137
         </Heading>
       </Box>
-      <Flex h="500px" overflow="hidden" bg="black">
+      {/* <Flex h="500px" overflow="hidden" bg="black">
         {allInstaNode.nodes.map((instaNode) => (
           <Box
             as="a"
@@ -67,7 +67,7 @@ export default function Home() {
             <Box as="img" h="full" loading="lazy" src={instaNode.original} />
           </Box>
         ))}
-      </Flex>
+      </Flex> */}
       <Box p="20" textAlign="center">
         <Text fontSize="2xl">
           &copy; {new Date().getFullYear()} Sorrento Barbers
