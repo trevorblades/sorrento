@@ -36,16 +36,14 @@ export default function Home() {
           2417 E Hastings St, Vancouver
         </Heading>
         <Heading fontSize="5xl">
-          Tuesday: 8 AM - 1 PM
+          Monday: 10 AM - 5 PM
           <br />
-          Wednesday - Saturday: 8 AM - 6 PM
-          <br />
-          Sunday: 10 AM - 3 PM
+          Tuesday - Saturday: 8 AM - 6 PM
         </Heading>
       </Flex>
       <Box px="20" mb="120px">
         <Heading fontSize="5xl" mb="8">
-          Monday: Closed
+          Sunday: 10 AM - 3 PM
         </Heading>
         <Heading fontSize="5xl">
           Join the waitlist
