@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Button } from "@chakra-ui/react";
 import { InferGetServerSidePropsType, NextPage } from "next";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -12,11 +13,12 @@ const List: NextPage<
   const router = useRouter();
   const supabase = useSupabaseClient();
   const [loading, setLoading] = useState(false);
+
   return (
     <div>
       {user.email}{" "}
-      <button
-        disabled={loading}
+      <Button
+        isLoading={loading}
         onClick={async () => {
           setLoading(true);
           const { error } = await supabase.auth.signOut();
@@ -28,7 +30,7 @@ const List: NextPage<
         }}
       >
         log out
-      </button>
+      </Button>
     </div>
   );
 };
