@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@chakra-ui/react";
 import { Database } from "../database.types";
 import { InferGetServerSidePropsType, NextPage } from "next";
-import { RealtimeChannel } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { withPageAuth } from "@supabase/auth-helpers-nextjs";
@@ -28,7 +27,7 @@ const List: NextPage<
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabaseClient<Database>();
 
   const [customers, setCustomers] = useState(defaultCustomers);
 
@@ -43,7 +42,7 @@ const List: NextPage<
         }
       )
       .subscribe();
-    console.log(channel);
+    () => channel.unsubscribe();
   }, []);
 
   return (
