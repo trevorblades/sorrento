@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "@chakra-ui/react";
 import { Database } from "../database.types";
-import { InferGetServerSidePropsType, NextPage } from "next";
-import { useRouter } from "next/router";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from "next";
+import { LogOutButton } from "../components/LogOutButton";
+import { User, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { withPageAuth } from "@supabase/auth-helpers-nextjs";
 
-export const getServerSideProps = withPageAuth<Database>({
+type Customer = Database["public"]["Tables"]["customers"]["Row"];
+
+export const getServerSideProps: GetServerSideProps<{
+  user: User;
+  customers: Customer[];
+}> = withPageAuth<Database>({
   redirectTo: "/login",
   async getServerSideProps(_, supabase) {
     const { data } = await supabase
@@ -24,11 +32,7 @@ export const getServerSideProps = withPageAuth<Database>({
 const List: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = ({ user, customers: defaultCustomers }) => {
-  const [loading, setLoading] = useState(false);
-
-  const router = useRouter();
   const supabase = useSupabaseClient<Database>();
-
   const [customers, setCustomers] = useState(defaultCustomers);
 
   useEffect(() => {
@@ -38,7 +42,7 @@ const List: NextPage<
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "customers" },
         (payload) => {
-          setCustomers((prev: any) => [payload.new, ...prev]);
+          setCustomers((prev) => [payload.new as Customer, ...prev]);
         }
       )
       .subscribe();
@@ -47,21 +51,7 @@ const List: NextPage<
 
   return (
     <div>
-      {user.email}{" "}
-      <Button
-        isLoading={loading}
-        onClick={async () => {
-          setLoading(true);
-          const { error } = await supabase.auth.signOut();
-          if (!error) {
-            router.push("/login");
-          }
-
-          setLoading(false);
-        }}
-      >
-        log out
-      </Button>
+      {user.email} <LogOutButton />
       <ul>
         {customers.map((customer) => (
           <li key={customer.id}>{customer.name}</li>
