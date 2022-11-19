@@ -1,3 +1,4 @@
+import * as jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
@@ -8,11 +9,12 @@ import { Barber, Customer, sequelize } from "./db.js";
 import { DateTimeResolver } from "graphql-scalars";
 import { Resolvers } from "./generated/graphql.js";
 import { WebSocketServer } from "ws";
+import { applyMiddleware } from "graphql-middleware";
 import { expressMiddleware } from "@apollo/server/express4";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { permissions } from "./permissions.js";
 import { readFileSync } from "fs";
 import { useServer } from "graphql-ws/lib/use/ws";
-import { verify } from "jsonwebtoken";
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -54,7 +56,7 @@ const wsServer = new WebSocketServer({
 const serverCleanup = useServer({ schema }, wsServer);
 
 const server = new ApolloServer({
-  schema,
+  schema: applyMiddleware(schema, permissions),
   plugins: [
     ApolloServerPluginDrainHttpServer({ httpServer }),
     {
@@ -79,7 +81,7 @@ app.use(
     context: async ({ req }) => {
       try {
         const matches = req.headers.authorization.match(/^bearer (\S+)$/i);
-        const decoded = verify(matches[1], process.env.JWT_SECRET);
+        const decoded = jwt.verify(matches[1], process.env.JWT_SECRET);
 
         if (typeof decoded === "string") {
           throw new Error("Invalid token");
