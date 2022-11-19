@@ -7,6 +7,7 @@ import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { Barber, Customer, sequelize } from "./db.js";
 import { DateTimeResolver } from "graphql-scalars";
+import { PubSub } from "graphql-subscriptions";
 import { Resolvers } from "./generated/graphql.js";
 import { WebSocketServer } from "ws";
 import { applyMiddleware } from "graphql-middleware";
@@ -21,11 +22,34 @@ const httpServer = http.createServer(app);
 
 const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 
+const CUSTOMER_ADDED = "CUSTOMER_ADDED";
+const CUSTOMER_UPDATED = "CUSTOMER_UPDATED";
+const CUSTOMER_REMOVED = "CUSTOMER_REMOVED";
+
+const pubsub = new PubSub();
+
 const resolvers: Resolvers = {
   DateTime: DateTimeResolver,
   Query: {
     me: (_, __, { user }) => user,
     customers: () => Customer.findAll(),
+  },
+  Subscription: {
+    customerAdded: {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: () => pubsub.asyncIterator(CUSTOMER_ADDED),
+      }),
+    },
+    customerUpdated: {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: () => pubsub.asyncIterator(CUSTOMER_UPDATED),
+      }),
+    },
+    customerRemoved: {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: () => pubsub.asyncIterator(CUSTOMER_REMOVED),
+      }),
+    },
   },
   Barber: {
     nowServing: (barber) =>
