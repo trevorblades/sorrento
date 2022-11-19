@@ -1,0 +1,40 @@
+scalar DateTime
+
+type Query {
+  me: Barber
+  customers(served: Boolean!): [Customer!]
+}
+
+type Mutation {
+  serveCustomer(id: ID!): Customer!
+  removeCustomer(id: ID!): Customer
+}
+
+type Subscription {
+  customerAdded: Customer
+  customerUpdated: Customer
+  customerRemoved: Customer
+}
+
+type Barber {
+  id: ID!
+  name: String!
+  email: String!
+  nowServing: Customer
+}
+
+type Customer {
+  id: ID!
+  name: String!
+  phone: String!
+  waitingSince: DateTime!
+  servedAt: DateTime
+  servedBy: Barber
+  messages: [Message!]!
+}
+
+type Message {
+  id: ID!
+  text: String!
+  sentAt: DateTime!
+}
