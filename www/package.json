@@ -2,7 +2,8 @@
   "scripts": {
     "start": "next dev",
     "build": "next build",
-    "serve": "next start"
+    "serve": "next start",
+    "gql": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
     "@apollo/client": "^3.7.1",
@@ -18,11 +19,17 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "2.13.12",
+    "@graphql-codegen/typescript": "2.8.2",
+    "@graphql-codegen/typescript-operations": "2.5.7",
+    "@graphql-codegen/typescript-react-apollo": "3.3.6",
+    "@graphql-eslint/eslint-plugin": "^3.13.1",
     "@trevorblades/eslint-plugin": "^1.2.3",
     "@types/react": "18.0.24",
     "eslint": "^8.26.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-yml": "^1.2.0",
     "prettier": "2.7.1",
     "typescript": "4.8.4"
   }

@@ -1,0 +1,12 @@
+query GetUser {
+  me {
+    id
+    name
+    username
+    nowServing {
+      id
+      name
+      phone
+    }
+  }
+}
