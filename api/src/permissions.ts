@@ -8,4 +8,7 @@ export const permissions = shield({
   Query: {
     customers: isAuthenticated,
   },
+  Mutation: {
+    "*": isAuthenticated,
+  },
 });
