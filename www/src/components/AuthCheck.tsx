@@ -1,5 +1,7 @@
 import React, { PropsWithChildren } from "react";
+import { Box, Center } from "@chakra-ui/react";
 import { LoginForm } from "./LoginForm";
+import { NextSeo } from "next-seo";
 import { useGetUserQuery } from "../generated/graphql";
 
 export default function AuthCheck({ children }: PropsWithChildren) {
@@ -15,9 +17,12 @@ export default function AuthCheck({ children }: PropsWithChildren) {
 
   if (!data?.me) {
     return (
-      <div>
-        <LoginForm />
-      </div>
+      <Center minH="100vh">
+        <NextSeo title="Log in" />
+        <Box w="full" maxW="md">
+          <LoginForm />
+        </Box>
+      </Center>
     );
   }
 

@@ -4,6 +4,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Stack,
   useToast,
 } from "@chakra-ui/react";
 import { useLogInMutation } from "../generated/graphql";
@@ -44,14 +45,16 @@ export function LoginForm() {
         });
       }}
     >
-      <FormControl isRequired>
-        <FormLabel>Username</FormLabel>
-        <Input name="username" />
-      </FormControl>
-      <FormControl isRequired>
-        <FormLabel>Password</FormLabel>
-        <Input type="password" name="password" />
-      </FormControl>
+      <Stack spacing="6" mb="10">
+        <FormControl isRequired>
+          <FormLabel>Username</FormLabel>
+          <Input name="username" />
+        </FormControl>
+        <FormControl isRequired>
+          <FormLabel>Password</FormLabel>
+          <Input type="password" name="password" />
+        </FormControl>
+      </Stack>
       <Button type="submit" isLoading={loading}>
         Log in
       </Button>
