@@ -1,9 +1,14 @@
 import React from "react";
+import {
+  AcceptingChangedDocument,
+  AcceptingChangedSubscription,
+  useListCustomersQuery,
+} from "../generated/graphql";
+import { AcceptingSwitch } from "./AcceptingSwitch";
 import { List, ListItem } from "@chakra-ui/react";
-import { useListCustomersQuery } from "../generated/graphql";
 
 export function Waitlist() {
-  const { data, loading, error } = useListCustomersQuery();
+  const { data, loading, error, subscribeToMore } = useListCustomersQuery();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -13,17 +18,31 @@ export function Waitlist() {
     return <div>{error.message}</div>;
   }
 
-  if (!data?.customers?.length) {
+  if (!data?.customers.length) {
     return <div>No customers</div>;
   }
 
   return (
-    <List>
-      {data.customers.map((customer) => (
-        <ListItem key={customer.id}>
-          {customer.name} {customer.phone}
-        </ListItem>
-      ))}
-    </List>
+    <>
+      <AcceptingSwitch
+        isAccepting={data.isAccepting}
+        onMount={() => {
+          subscribeToMore<AcceptingChangedSubscription>({
+            document: AcceptingChangedDocument,
+            updateQuery: (prev, { subscriptionData }) => ({
+              ...prev,
+              isAccepting: subscriptionData.data.acceptingChanged,
+            }),
+          });
+        }}
+      />
+      <List>
+        {data.customers.map((customer) => (
+          <ListItem key={customer.id}>
+            {customer.name} {customer.phone}
+          </ListItem>
+        ))}
+      </List>
+    </>
   );
 }

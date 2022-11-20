@@ -1,4 +1,5 @@
 query ListCustomers {
+  isAccepting
   customers(served: false) {
     id
     name

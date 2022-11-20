@@ -10,11 +10,12 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import { Barber, Customer, Message, sequelize } from "./db.js";
 import { DateTimeResolver } from "graphql-scalars";
 import { GraphQLError } from "graphql";
-import { PubSub } from "graphql-subscriptions";
+import { RedisPubSub } from "graphql-redis-subscriptions";
 import { Resolvers } from "./generated/graphql.js";
 import { WebSocketServer } from "ws";
 import { applyMiddleware } from "graphql-middleware";
 import { default as bcrypt } from "bcryptjs";
+import { createClient } from "redis";
 import { expressMiddleware } from "@apollo/server/express4";
 import { default as jwt } from "jsonwebtoken";
 import { makeExecutableSchema } from "@graphql-tools/schema";
@@ -30,29 +31,44 @@ const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 const CUSTOMER_ADDED = "CUSTOMER_ADDED";
 const CUSTOMER_UPDATED = "CUSTOMER_UPDATED";
 const CUSTOMER_REMOVED = "CUSTOMER_REMOVED";
+const ACCEPTING_CHANGED = "ACCEPTING_CHANGED";
 
-const IS_ACCEPTING = true; // TODO: wire this up to the DB
+const PHONE_NUMBER = "+16043308137";
+const IS_ACCEPTING_KEY = "accepting";
 const KEYWORD = "REMOVE";
 const AVERAGE_HANDLE_TIME = 40;
 const ACTIVE_AGENTS = 3;
 const MAX_QUEUE_SIZE = 10;
 
-const pubsub = new PubSub();
+const redisClient = createClient();
+
+const pubsub = new RedisPubSub();
 
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 
-type ContextType = { user: Barber | null };
+type ContextType = {
+  user: Barber | null;
+};
 
 const resolvers: Resolvers<ContextType> = {
   DateTime: DateTimeResolver,
   Query: {
     me: (_, __, { user }) => user,
     customers: () => Customer.findAll(),
+    isAccepting: async () => {
+      const isAccepting = await redisClient.get(IS_ACCEPTING_KEY);
+      return isAccepting === "true";
+    },
   },
   Subscription: {
+    acceptingChanged: {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: () => pubsub.asyncIterator(ACCEPTING_CHANGED),
+      }),
+    },
     customerAdded: {
       subscribe: () => ({
         [Symbol.asyncIterator]: () => pubsub.asyncIterator(CUSTOMER_ADDED),
@@ -85,6 +101,11 @@ const resolvers: Resolvers<ContextType> = {
         subject: user.id.toString(),
       });
     },
+    setAccepting: async (_, { accepting }) => {
+      await redisClient.set(IS_ACCEPTING_KEY, accepting.toString());
+      pubsub.publish(ACCEPTING_CHANGED, { acceptingChanged: accepting });
+      return accepting;
+    },
     async serveCustomer(_, args, { user }) {
       const customer = await Customer.findByPk(args.id);
 
@@ -98,7 +119,7 @@ const resolvers: Resolvers<ContextType> = {
 
       const message = await twilioClient.messages.create({
         body: "Your barber is ready to serve you! Please head over to Sorrento to meet your barber.",
-        from: "+16043308137",
+        from: PHONE_NUMBER,
         to: customer.phone,
       });
 
@@ -196,13 +217,10 @@ app.use(
         }
 
         const user = await Barber.findByPk(decoded.sub);
-        return {
-          user,
-        };
+
+        return { user };
       } catch {
-        return {
-          user: null,
-        };
+        return { user: null };
       }
     },
   })
@@ -229,8 +247,9 @@ app.post("/sms", async (req, res) => {
       messagingResponse.message("You are not on the list.");
     }
   } else {
+    const isAccepting = await redisClient.get(IS_ACCEPTING_KEY);
     // otherwise, check to see if the barber is accepting customers
-    if (!IS_ACCEPTING) {
+    if (isAccepting !== "true") {
       // if not, send a message saying so
       messagingResponse.message(
         "We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
@@ -306,6 +325,7 @@ app.post("/sms", async (req, res) => {
   res.end(messagingResponse.toString());
 });
 
+await redisClient.connect();
 await sequelize.sync();
 
 await new Promise<void>((resolve) =>
