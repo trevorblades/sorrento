@@ -61,6 +61,6 @@ export class Message extends Model {
   customer: Customer;
 }
 
-export const sequelize = new Sequelize(process.env.DATABASE_URL, {
+export const sequelize = new Sequelize(process.env.DATABASE_URL!, {
   models: [Barber, Customer, Message],
 });

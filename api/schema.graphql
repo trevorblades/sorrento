@@ -6,6 +6,7 @@ type Query {
 }
 
 type Mutation {
+  logIn(email: String!, password: String!): String
   serveCustomer(id: ID!): Customer!
   removeCustomer(id: ID!): Customer
 }

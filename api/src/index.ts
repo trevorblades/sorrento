@@ -1,3 +1,4 @@
+import * as bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -43,7 +44,9 @@ const twilioClient = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
-const resolvers: Resolvers = {
+type ContextType = { user: Barber | null };
+
+const resolvers: Resolvers<ContextType> = {
   DateTime: DateTimeResolver,
   Query: {
     me: (_, __, { user }) => user,
@@ -67,6 +70,21 @@ const resolvers: Resolvers = {
     },
   },
   Mutation: {
+    async logIn(_, { email, password }) {
+      const user = await Barber.findOne({ where: { email } });
+
+      if (!user || !bcrypt.compareSync(password, user.password)) {
+        throw new GraphQLError("Incorrect email/password combination", {
+          extensions: {
+            code: "UNAUTHORIZED",
+          },
+        });
+      }
+
+      return jwt.sign({ name: user.name }, process.env.JWT_SECRET!, {
+        subject: user.id.toString(),
+      });
+    },
     async serveCustomer(_, args, { user }) {
       const customer = await Customer.findByPk(args.id);
 
@@ -87,14 +105,14 @@ const resolvers: Resolvers = {
       await customer.update({
         receipt: message.sid,
         servedAt: new Date(),
-        servedBy: user.id,
+        servedBy: user?.id,
       });
 
       pubsub.publish(CUSTOMER_REMOVED, { customerRemoved: customer });
 
       return customer;
     },
-    async removeCustomer(parent, args, { db }) {
+    async removeCustomer(parent, args) {
       const customer = await Customer.findByPk(args.id);
 
       if (!customer) {
@@ -140,7 +158,7 @@ const wsServer = new WebSocketServer({
 
 const serverCleanup = useServer({ schema }, wsServer);
 
-const server = new ApolloServer({
+const server = new ApolloServer<ContextType>({
   schema: applyMiddleware(schema, permissions),
   plugins: [
     ApolloServerPluginDrainHttpServer({ httpServer }),
@@ -165,8 +183,13 @@ app.use(
   expressMiddleware(server, {
     context: async ({ req }) => {
       try {
-        const matches = req.headers.authorization.match(/^bearer (\S+)$/i);
-        const decoded = jwt.verify(matches[1], process.env.JWT_SECRET);
+        const matches = req.headers.authorization?.match(/^bearer (\S+)$/i);
+
+        if (!matches) {
+          throw new Error("Auth token not provided");
+        }
+
+        const decoded = jwt.verify(matches[1], process.env.JWT_SECRET!);
 
         if (typeof decoded === "string") {
           throw new Error("Invalid token");
