@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   AcceptingChangedDocument,
   AcceptingChangedSubscription,
@@ -9,6 +9,16 @@ import { List, ListItem } from "@chakra-ui/react";
 
 export function Waitlist() {
   const { data, loading, error, subscribeToMore } = useListCustomersQuery();
+
+  const onAcceptingSwitchMount = useCallback(() => {
+    subscribeToMore<AcceptingChangedSubscription>({
+      document: AcceptingChangedDocument,
+      updateQuery: (prev, { subscriptionData }) => ({
+        ...prev,
+        isAccepting: subscriptionData.data.acceptingChanged,
+      }),
+    });
+  }, [subscribeToMore]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -26,15 +36,7 @@ export function Waitlist() {
     <>
       <AcceptingSwitch
         isAccepting={data.isAccepting}
-        onMount={() => {
-          subscribeToMore<AcceptingChangedSubscription>({
-            document: AcceptingChangedDocument,
-            updateQuery: (prev, { subscriptionData }) => ({
-              ...prev,
-              isAccepting: subscriptionData.data.acceptingChanged,
-            }),
-          });
-        }}
+        onMount={onAcceptingSwitchMount}
       />
       <List>
         {data.customers.map((customer) => (

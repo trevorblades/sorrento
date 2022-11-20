@@ -21,7 +21,7 @@ export function AcceptingSwitch({
     },
   });
 
-  useEffect(onMount, []);
+  useEffect(onMount, [onMount]);
 
   return (
     <Switch
