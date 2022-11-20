@@ -6,7 +6,7 @@ type Query {
 }
 
 type Mutation {
-  logIn(email: String!, password: String!): String
+  logIn(username: String!, password: String!): String
   serveCustomer(id: ID!): Customer!
   removeCustomer(id: ID!): Customer
 }
@@ -20,7 +20,7 @@ type Subscription {
 type Barber {
   id: ID!
   name: String!
-  email: String!
+  username: String!
   nowServing: Customer
 }
 

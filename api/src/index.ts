@@ -1,5 +1,3 @@
-import * as bcrypt from "bcryptjs";
-import * as jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
@@ -16,7 +14,9 @@ import { PubSub } from "graphql-subscriptions";
 import { Resolvers } from "./generated/graphql.js";
 import { WebSocketServer } from "ws";
 import { applyMiddleware } from "graphql-middleware";
+import { default as bcrypt } from "bcryptjs";
 import { expressMiddleware } from "@apollo/server/express4";
+import { default as jwt } from "jsonwebtoken";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { permissions } from "./permissions.js";
 import { readFileSync } from "fs";
@@ -70,11 +70,11 @@ const resolvers: Resolvers<ContextType> = {
     },
   },
   Mutation: {
-    async logIn(_, { email, password }) {
-      const user = await Barber.findOne({ where: { email } });
+    async logIn(_, { username, password }) {
+      const user = await Barber.findOne({ where: { username } });
 
       if (!user || !bcrypt.compareSync(password, user.password)) {
-        throw new GraphQLError("Incorrect email/password combination", {
+        throw new GraphQLError("Incorrect username/password combination", {
           extensions: {
             code: "UNAUTHORIZED",
           },

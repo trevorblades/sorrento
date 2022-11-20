@@ -4,13 +4,18 @@ const isAuthenticated = rule({ cache: "contextual" })(
   (_, __, { user }) => user !== null
 );
 
-export const permissions = shield({
-  Query: {
-    "*": isAuthenticated,
-    me: allow,
+export const permissions = shield(
+  {
+    Query: {
+      "*": isAuthenticated,
+      me: allow,
+    },
+    Mutation: {
+      "*": isAuthenticated,
+      logIn: allow,
+    },
   },
-  Mutation: {
-    "*": isAuthenticated,
-    logIn: allow,
-  },
-});
+  {
+    allowExternalErrors: true,
+  }
+);

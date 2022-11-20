@@ -14,7 +14,7 @@ export class Barber extends Model {
   name: string;
 
   @Column
-  email: string;
+  username: string;
 
   @Column
   password: string;
