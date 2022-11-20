@@ -2,13 +2,13 @@ scalar DateTime
 
 type Query {
   me: Barber
-  customers(served: Boolean!): [Customer!]
+  customers(served: Boolean!): [Customer!]!
 }
 
 type Mutation {
-  logIn(username: String!, password: String!): String
+  logIn(username: String!, password: String!): String!
   serveCustomer(id: ID!): Customer!
-  removeCustomer(id: ID!): Customer
+  removeCustomer(id: ID!): Customer!
 }
 
 type Subscription {
