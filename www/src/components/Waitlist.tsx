@@ -2,10 +2,13 @@ import React, { useCallback } from "react";
 import {
   AcceptingChangedDocument,
   AcceptingChangedSubscription,
+  CustomerRemovedDocument,
+  CustomerRemovedSubscription,
   useListCustomersQuery,
 } from "../generated/graphql";
 import { AcceptingSwitch } from "./AcceptingSwitch";
 import { List, ListItem } from "@chakra-ui/react";
+import { RemoveCustomer } from "./RemoveCustomer";
 
 export function Waitlist() {
   const { data, loading, error, subscribeToMore } = useListCustomersQuery();
@@ -18,6 +21,16 @@ export function Waitlist() {
         isAccepting: subscriptionData.data.acceptingChanged,
       }),
     });
+
+    subscribeToMore<CustomerRemovedSubscription>({
+      document: CustomerRemovedDocument,
+      updateQuery: (prev, { subscriptionData }) => ({
+        ...prev,
+        customers: prev.customers.filter(
+          (customer) => customer.id !== subscriptionData.data.customerRemoved.id
+        ),
+      }),
+    });
   }, [subscribeToMore]);
 
   if (loading) {
@@ -28,8 +41,8 @@ export function Waitlist() {
     return <div>{error.message}</div>;
   }
 
-  if (!data?.customers.length) {
-    return <div>No customers</div>;
+  if (!data) {
+    throw new Error("No data");
   }
 
   return (
@@ -38,13 +51,18 @@ export function Waitlist() {
         isAccepting={data.isAccepting}
         onMount={onAcceptingSwitchMount}
       />
-      <List>
-        {data.customers.map((customer) => (
-          <ListItem key={customer.id}>
-            {customer.name} {customer.phone}
-          </ListItem>
-        ))}
-      </List>
+      {data.customers.length ? (
+        <List>
+          {data.customers.map((customer) => (
+            <ListItem key={customer.id}>
+              {customer.name} {customer.phone}
+              <RemoveCustomer customer={customer} />
+            </ListItem>
+          ))}
+        </List>
+      ) : (
+        <div>No customers</div>
+      )}
     </>
   );
 }

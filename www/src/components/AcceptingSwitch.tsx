@@ -11,15 +11,7 @@ export function AcceptingSwitch({
   isAccepting,
   onMount,
 }: AcceptingSwitchProps) {
-  const [setAccepting, { loading }] = useSetAcceptingMutation({
-    update(cache, { data }) {
-      cache.modify({
-        fields: {
-          isAccepting: () => data?.setAccepting,
-        },
-      });
-    },
-  });
+  const [setAccepting, { loading }] = useSetAcceptingMutation();
 
   useEffect(onMount, [onMount]);
 
