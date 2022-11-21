@@ -19,6 +19,7 @@ import { createClient } from "redis";
 import { expressMiddleware } from "@apollo/server/express4";
 import { default as jwt } from "jsonwebtoken";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { parsePhoneNumber } from "awesome-phonenumber";
 import { permissions } from "./permissions.js";
 import { readFileSync } from "fs";
 import { useServer } from "graphql-ws/lib/use/ws";
@@ -57,7 +58,12 @@ const resolvers: Resolvers<ContextType> = {
   DateTime: DateTimeResolver,
   Query: {
     me: (_, __, { user }) => user,
-    customers: () => Customer.findAll(),
+    customers: () =>
+      Customer.findAll({
+        where: {
+          servedAt: null,
+        },
+      }),
     isAccepting: async () => {
       const isAccepting = await redisClient.get(IS_ACCEPTING_KEY);
       return isAccepting === "true";
@@ -161,6 +167,10 @@ const resolvers: Resolvers<ContextType> = {
       }),
   },
   Customer: {
+    phone: (customer) => {
+      const { number } = parsePhoneNumber(customer.phone);
+      return number?.national || customer.phone;
+    },
     waitingSince: (customer) => customer.createdAt,
     servedBy: (customer) => customer.$get("servedBy"),
     messages: (customer) => customer.$get("messages"),

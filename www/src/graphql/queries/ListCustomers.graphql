@@ -1,14 +1,6 @@
 query ListCustomers {
   isAccepting
   customers(served: false) {
-    id
-    name
-    phone
-    waitingSince
-    messages {
-      id
-      text
-      sentAt
-    }
+    ...Customer
   }
 }

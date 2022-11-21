@@ -1,0 +1,9 @@
+fragment Customer on Customer {
+  id
+  name
+  phone
+  waitingSince
+  messages {
+    ...Message
+  }
+}

@@ -1,0 +1,5 @@
+mutation ServeCustomer($id: ID!) {
+  serveCustomer(id: $id) {
+    ...NowServing
+  }
+}

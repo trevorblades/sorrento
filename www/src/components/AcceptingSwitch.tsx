@@ -11,13 +11,12 @@ export function AcceptingSwitch({
   isAccepting,
   onMount,
 }: AcceptingSwitchProps) {
-  const [setAccepting, { loading }] = useSetAcceptingMutation();
+  const [setAccepting] = useSetAcceptingMutation();
 
   useEffect(onMount, [onMount]);
 
   return (
     <Switch
-      isDisabled={loading}
       isChecked={isAccepting}
       onChange={(event) =>
         setAccepting({

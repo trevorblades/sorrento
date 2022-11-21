@@ -1,14 +1,22 @@
-import React, { PropsWithChildren } from "react";
-import { Box, Center } from "@chakra-ui/react";
+import React, { ReactElement } from "react";
+import { Box, Center, Spinner } from "@chakra-ui/react";
+import { GetUserQuery, useGetUserQuery } from "../generated/graphql";
 import { LoginForm } from "./LoginForm";
 import { NextSeo } from "next-seo";
-import { useGetUserQuery } from "../generated/graphql";
 
-export default function AuthCheck({ children }: PropsWithChildren) {
+type AuthCheckProps = {
+  children: (user: NonNullable<GetUserQuery["me"]>) => ReactElement;
+};
+
+export default function AuthCheck({ children }: AuthCheckProps) {
   const { data, loading, error } = useGetUserQuery();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <Center h="100vh">
+        <Spinner />
+      </Center>
+    );
   }
 
   if (error) {
@@ -26,5 +34,5 @@ export default function AuthCheck({ children }: PropsWithChildren) {
     );
   }
 
-  return <>{children}</>;
+  return <>{children(data.me)}</>;
 }

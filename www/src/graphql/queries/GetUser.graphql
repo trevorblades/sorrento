@@ -4,9 +4,7 @@ query GetUser {
     name
     username
     nowServing {
-      id
-      name
-      phone
+      ...NowServing
     }
   }
 }
