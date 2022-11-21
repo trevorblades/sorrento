@@ -1,4 +1,4 @@
-import React, { ComponentProps, useCallback } from "react";
+import React, { ComponentProps, useEffect } from "react";
 import auston from "../assets/auston.png";
 import {
   AcceptingChangedDocument,
@@ -10,7 +10,6 @@ import {
   CustomerRemovedDocument,
   CustomerRemovedSubscription,
   CustomerUpdatedDocument,
-  CustomerUpdatedSubscription,
   useListCustomersQuery,
 } from "../generated/graphql";
 import { AcceptingSwitch } from "./AcceptingSwitch";
@@ -38,6 +37,7 @@ import {
 import { FiArrowRight, FiCheckCircle } from "react-icons/fi";
 import { RemoveCustomer } from "./RemoveCustomer";
 import { ServeCustomer } from "./ServeCustomer";
+import { Subscriptions } from "./Subscriptions";
 import { Timer } from "./Timer";
 import { ToggleColorMode } from "./ToggleColorMode";
 
@@ -52,42 +52,53 @@ export function Waitlist({ user }: WaitlistProps) {
   const { data, loading, error, subscribeToMore, client } =
     useListCustomersQuery();
 
-  const onAcceptingSwitchMount = useCallback(() => {
-    const cleanUp1 = subscribeToMore<AcceptingChangedSubscription>({
-      document: AcceptingChangedDocument,
-      updateQuery: (prev, { subscriptionData }) => ({
-        ...prev,
-        isAccepting: subscriptionData.data.acceptingChanged,
+  /**
+   * Set up subscriptions for when customers are added, removed, or updated.
+   */
+
+  useEffect(
+    () =>
+      subscribeToMore<AcceptingChangedSubscription>({
+        document: AcceptingChangedDocument,
+        updateQuery: (prev, { subscriptionData }) => ({
+          ...prev,
+          isAccepting: subscriptionData.data.acceptingChanged,
+        }),
       }),
-    });
+    [subscribeToMore]
+  );
 
-    const cleanUp2 = subscribeToMore<CustomerAddedSubscription>({
-      document: CustomerAddedDocument,
-      updateQuery: (prev, { subscriptionData }) => ({
-        ...prev,
-        customers: [subscriptionData.data.customerAdded, ...prev.customers],
+  useEffect(
+    () =>
+      subscribeToMore<CustomerAddedSubscription>({
+        document: CustomerAddedDocument,
+        updateQuery: (prev, { subscriptionData }) => ({
+          ...prev,
+          customers: [subscriptionData.data.customerAdded, ...prev.customers],
+        }),
       }),
-    });
+    [subscribeToMore]
+  );
 
-    const cleanUp3 = subscribeToMore<CustomerRemovedSubscription>({
-      document: CustomerRemovedDocument,
-      updateQuery: (prev, { subscriptionData }) => ({
-        ...prev,
-        customers: prev.customers.filter(
-          (customer) => customer.id !== subscriptionData.data.customerRemoved.id
-        ),
+  useEffect(
+    () =>
+      subscribeToMore<CustomerRemovedSubscription>({
+        document: CustomerRemovedDocument,
+        updateQuery: (prev, { subscriptionData }) => ({
+          ...prev,
+          customers: prev.customers.filter(
+            (customer) =>
+              customer.id !== subscriptionData.data.customerRemoved.id
+          ),
+        }),
       }),
-    });
+    [subscribeToMore]
+  );
 
-    const cleanUp4 = subscribeToMore({ document: CustomerUpdatedDocument });
-
-    return () => {
-      cleanUp1();
-      cleanUp2();
-      cleanUp3();
-      cleanUp4();
-    };
-  }, [subscribeToMore]);
+  useEffect(
+    () => subscribeToMore({ document: CustomerUpdatedDocument }),
+    [subscribeToMore]
+  );
 
   if (loading) {
     return (
@@ -124,10 +135,7 @@ export function Waitlist({ user }: WaitlistProps) {
             eSorrento
           </chakra.h1>
           <HStack as="label">
-            <AcceptingSwitch
-              isAccepting={isAccepting}
-              onMount={onAcceptingSwitchMount}
-            />
+            <AcceptingSwitch isAccepting={isAccepting} />
             <chakra.span textTransform="uppercase">
               {isAccepting ? "On" : "Off"}
             </chakra.span>

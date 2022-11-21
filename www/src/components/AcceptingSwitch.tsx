@@ -1,30 +1,25 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Switch } from "@chakra-ui/react";
 import { useSetAcceptingMutation } from "../generated/graphql";
 
 type AcceptingSwitchProps = {
   isAccepting: boolean;
-  onMount: () => void;
 };
 
-export function AcceptingSwitch({
-  isAccepting,
-  onMount,
-}: AcceptingSwitchProps) {
-  const [setAccepting] = useSetAcceptingMutation();
-
-  useEffect(onMount, [onMount]);
-
+export function AcceptingSwitch({ isAccepting }: AcceptingSwitchProps) {
+  const [setAccepting, { loading }] = useSetAcceptingMutation();
   return (
     <Switch
       isChecked={isAccepting}
-      onChange={(event) =>
-        setAccepting({
-          variables: {
-            accepting: event.target.checked,
-          },
-        })
-      }
+      onChange={(event) => {
+        if (!loading) {
+          setAccepting({
+            variables: {
+              accepting: event.target.checked,
+            },
+          });
+        }
+      }}
     />
   );
 }
