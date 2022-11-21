@@ -7,6 +7,7 @@ generates:
       - typescript-resolvers
     config:
       useIndexSignature: true
+      mapperTypeSuffix: Model
       mappers:
         Barber: ../db#Barber
         Customer: ../db#Customer

@@ -1,4 +1,10 @@
 {
+  "scripts": {
+    "gql": "graphql-codegen --config codegen.yml",
+    "start": "node -r dotenv/config --watch --loader ts-node/esm --experimental-specifier-resolution node src",
+    "build": "tsc"
+  },
+  "type": "module",
   "devDependencies": {
     "@graphql-codegen/cli": "2.13.12",
     "@graphql-codegen/typescript": "2.8.2",
@@ -43,11 +49,6 @@
     "sequelize-typescript": "^2.1.5",
     "twilio": "^3.83.3",
     "ws": "^8.11.0"
-  },
-  "type": "module",
-  "scripts": {
-    "gql": "graphql-codegen --config codegen.yml",
-    "start": "node -r dotenv/config --watch --loader ts-node/esm --experimental-specifier-resolution node src"
   },
   "volta": {
     "node": "18.12.1"

@@ -1,3 +1,4 @@
 node_modules
 src/generated/graphql.ts
 .env
+dist
