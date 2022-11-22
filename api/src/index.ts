@@ -274,7 +274,7 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
     if (isAccepting !== "true") {
       // if not, send a message saying so
       messagingResponse.message(
-        "TEST We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
+        "We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
       );
     } else {
       // otherwise, add the customer to the list
@@ -291,6 +291,8 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
           text: req.body.Body,
           customerId: customer.id,
         });
+
+        console.log("updated");
 
         pubsub.publish(CUSTOMER_UPDATED, { customerUpdated: customer });
 
@@ -332,6 +334,8 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
           name: req.body.Body,
           phone: req.body.From,
         });
+
+        console.log("added");
 
         pubsub.publish(CUSTOMER_ADDED, { customerAdded: customer });
       } else {
