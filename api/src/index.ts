@@ -6,20 +6,20 @@ import http from "http";
 import pluralize from "pluralize";
 import twilio from "twilio";
 import { ApolloServer } from "@apollo/server";
-import { ApolloServerErrorCode } from "@apollo/server/errors";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { Barber, Customer, Message, sequelize } from "./db.js";
-import { DateTimeResolver } from "graphql-scalars";
-import { GraphQLError } from "graphql";
+import {
+  CUSTOMER_ADDED,
+  CUSTOMER_REMOVED,
+  CUSTOMER_UPDATED,
+} from "./subscriptions.js";
+import { ContextType, IS_ACCEPTING_KEY, resolvers } from "./resolvers.js";
 import { RedisPubSub } from "graphql-redis-subscriptions";
-import { Resolvers } from "./generated/graphql.js";
 import { WebSocketServer } from "ws";
 import { applyMiddleware } from "graphql-middleware";
-import { default as bcrypt } from "bcryptjs";
 import { expressMiddleware } from "@apollo/server/express4";
 import { default as jwt } from "jsonwebtoken";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { parsePhoneNumber } from "awesome-phonenumber";
 import { permissions } from "./permissions.js";
 import { readFileSync } from "fs";
 import { useServer } from "graphql-ws/lib/use/ws";
@@ -29,165 +29,18 @@ const httpServer = http.createServer(app);
 
 const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 
-const CUSTOMER_ADDED = "CUSTOMER_ADDED";
-const CUSTOMER_UPDATED = "CUSTOMER_UPDATED";
-const CUSTOMER_REMOVED = "CUSTOMER_REMOVED";
-const ACCEPTING_CHANGED = "ACCEPTING_CHANGED";
-
-const PHONE_NUMBER = "+16043308137";
-const IS_ACCEPTING_KEY = "accepting";
-const KEYWORD = "REMOVE";
-const AVERAGE_HANDLE_TIME = 40;
-const ACTIVE_AGENTS = 3;
-const MAX_QUEUE_SIZE = 10;
-
-const redisClient = new Redis(process.env.REDIS_URL!);
-
-const pubsub = new RedisPubSub({
-  publisher: new Redis(process.env.REDIS_URL!),
-  subscriber: new Redis(process.env.REDIS_URL!),
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
 });
 
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+const createClient = () => new Redis(process.env.REDIS_URL!);
 
-type ContextType = {
-  user: Barber | null;
-};
+const redisClient = createClient();
 
-const resolvers: Resolvers<ContextType> = {
-  DateTime: DateTimeResolver,
-  Query: {
-    me: (_, __, { user }) => user,
-    customers: () =>
-      Customer.findAll({
-        where: {
-          servedAt: null,
-        },
-      }),
-    isAccepting: async () => {
-      const isAccepting = await redisClient.get(IS_ACCEPTING_KEY);
-      return isAccepting === "true";
-    },
-  },
-  Subscription: {
-    acceptingChanged: {
-      subscribe: () => ({
-        [Symbol.asyncIterator]: () => pubsub.asyncIterator(ACCEPTING_CHANGED),
-      }),
-    },
-    customerAdded: {
-      subscribe: () => ({
-        [Symbol.asyncIterator]: () => pubsub.asyncIterator(CUSTOMER_ADDED),
-      }),
-    },
-    customerUpdated: {
-      subscribe: () => ({
-        [Symbol.asyncIterator]: () => pubsub.asyncIterator(CUSTOMER_UPDATED),
-      }),
-    },
-    customerRemoved: {
-      subscribe: () => ({
-        [Symbol.asyncIterator]: () => pubsub.asyncIterator(CUSTOMER_REMOVED),
-      }),
-    },
-  },
-  Mutation: {
-    async logIn(_, { username, password }) {
-      const user = await Barber.findOne({ where: { username } });
-
-      if (!user || !bcrypt.compareSync(password, user.password)) {
-        throw new GraphQLError("Incorrect username/password combination", {
-          extensions: {
-            code: "UNAUTHORIZED",
-          },
-        });
-      }
-
-      return jwt.sign({ name: user.name }, process.env.JWT_SECRET!, {
-        subject: user.id.toString(),
-      });
-    },
-    setAccepting: async (_, { accepting }) => {
-      await redisClient.set(IS_ACCEPTING_KEY, accepting.toString());
-      pubsub.publish(ACCEPTING_CHANGED, { acceptingChanged: accepting });
-      return accepting;
-    },
-    async serveCustomer(_, args, { user }) {
-      const customer = await Customer.findByPk(args.id);
-
-      if (!customer) {
-        throw new GraphQLError("Invalid customer", {
-          extensions: {
-            code: ApolloServerErrorCode.BAD_USER_INPUT,
-          },
-        });
-      }
-
-      const message = await twilioClient.messages.create({
-        body: "Your barber is ready to serve you! Please head over to Sorrento to meet your barber.",
-        from: PHONE_NUMBER,
-        to: customer.phone,
-      });
-
-      await customer.update({
-        receipt: message.sid,
-        servedAt: new Date(),
-        barberId: user?.id,
-      });
-
-      pubsub.publish(CUSTOMER_REMOVED, { customerRemoved: customer });
-
-      return customer;
-    },
-    async removeCustomer(parent, args) {
-      const customer = await Customer.findByPk(args.id);
-
-      if (!customer) {
-        throw new GraphQLError("Invalid customer", {
-          extensions: {
-            code: ApolloServerErrorCode.BAD_USER_INPUT,
-          },
-        });
-      }
-
-      await customer.destroy();
-
-      pubsub.publish(CUSTOMER_REMOVED, { customerRemoved: customer });
-
-      return customer;
-    },
-  },
-  Barber: {
-    nowServing: (barber) =>
-      Customer.findOne({
-        where: {
-          barberId: barber.id,
-        },
-        order: [["createdAt", "DESC"]],
-      }),
-  },
-  Customer: {
-    phone: (customer) => {
-      const { number } = parsePhoneNumber(customer.phone);
-      return number?.national || customer.phone;
-    },
-    waitingSince: (customer) => customer.createdAt,
-    servedBy: (customer) =>
-      Barber.findOne({ where: { id: customer.barberId } }),
-    messages: (customer) =>
-      Message.findAll({ where: { customerId: customer.id } }),
-  },
-  Message: {
-    sentAt: (message) => message.createdAt,
-  },
-};
-
-const schema = makeExecutableSchema({
-  typeDefs: [typeDefs],
-  resolvers,
+const pubsub = new RedisPubSub({
+  publisher: createClient(),
+  subscriber: createClient(),
 });
 
 const wsServer = new WebSocketServer({
@@ -195,7 +48,16 @@ const wsServer = new WebSocketServer({
   path: "/graphql",
 });
 
-const serverCleanup = useServer({ schema }, wsServer);
+const serverCleanup = useServer(
+  {
+    schema,
+    context: {
+      redisClient,
+      pubsub,
+    },
+  },
+  wsServer
+);
 
 const server = new ApolloServer<ContextType>({
   introspection: true,
@@ -230,6 +92,8 @@ app.use(
   bodyParser.json(),
   expressMiddleware(server, {
     context: async ({ req }) => {
+      let user = null;
+
       try {
         const matches = req.headers.authorization?.match(/^bearer (\S+)$/i);
 
@@ -243,15 +107,24 @@ app.use(
           throw new Error("Invalid token");
         }
 
-        const user = await Barber.findByPk(decoded.sub);
-
-        return { user };
+        user = await Barber.findByPk(decoded.sub);
       } catch {
-        return { user: null };
+        // do nothing
       }
+
+      return {
+        user,
+        redisClient,
+        pubsub,
+      };
     },
   })
 );
+
+export const KEYWORD = "REMOVE";
+export const AVERAGE_HANDLE_TIME = 40;
+export const ACTIVE_AGENTS = 3;
+export const MAX_QUEUE_SIZE = 10;
 
 // twilio webhook
 app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
