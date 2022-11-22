@@ -135,7 +135,7 @@ const resolvers: Resolvers<ContextType> = {
       await customer.update({
         receipt: message.sid,
         servedAt: new Date(),
-        servedBy: user?.id,
+        barberId: user?.id,
       });
 
       pubsub.publish(CUSTOMER_REMOVED, { customerRemoved: customer });
