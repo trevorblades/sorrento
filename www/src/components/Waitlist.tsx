@@ -239,7 +239,7 @@ export function Waitlist({ user }: WaitlistProps) {
               Next{" "}
               <chakra.span
                 display={{
-                  display: "none",
+                  base: "none",
                   md: "inline",
                 }}
               >
