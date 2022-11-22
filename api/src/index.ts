@@ -44,8 +44,8 @@ const MAX_QUEUE_SIZE = 10;
 const redisClient = new Redis(process.env.REDIS_URL!);
 
 const pubsub = new RedisPubSub({
-  publisher: redisClient,
-  subscriber: redisClient,
+  publisher: new Redis(process.env.REDIS_URL!),
+  subscriber: new Redis(process.env.REDIS_URL!),
 });
 
 const twilioClient = twilio(
