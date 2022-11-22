@@ -176,7 +176,8 @@ const resolvers: Resolvers<ContextType> = {
     },
     waitingSince: (customer) => customer.createdAt,
     servedBy: (customer) => customer.$get("servedBy"),
-    messages: (customer) => customer.$get("messages"),
+    messages: (customer) =>
+      Message.findAll({ where: { customerId: customer.id } }),
   },
   Message: {
     sentAt: (message) => message.createdAt,
