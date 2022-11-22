@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 import bodyParser from "body-parser";
 import cors from "cors";
-import express from "express";
+import express, { urlencoded } from "express";
 import http from "http";
 import pluralize from "pluralize";
 import twilio from "twilio";
@@ -212,13 +212,16 @@ const server = new ApolloServer<ContextType>({
 await server.start();
 
 app.use(
-  "/graphql",
   cors<cors.CorsRequest>({
     origin:
       process.env.NODE_ENV === "production"
         ? ["https://sorrentobarbers.com", "https://sorrento.vercel.app"]
         : "*",
-  }),
+  })
+);
+
+app.use(
+  "/graphql",
   bodyParser.json(),
   expressMiddleware(server, {
     context: async ({ req }) => {
@@ -246,7 +249,7 @@ app.use(
 );
 
 // twilio webhook
-app.post("/sms", async (req, res) => {
+app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
   const messagingResponse = new twilio.twiml.MessagingResponse();
 
   // if the message contains the keyword, remove the customer
@@ -271,7 +274,7 @@ app.post("/sms", async (req, res) => {
     if (isAccepting !== "true") {
       // if not, send a message saying so
       messagingResponse.message(
-        "We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
+        "TEST We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
       );
     } else {
       // otherwise, add the customer to the list
