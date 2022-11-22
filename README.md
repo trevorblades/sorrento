@@ -22,10 +22,10 @@ This project was a collaboration between me and [Ken Taylor](https://github.com/
 - Apollo Server
 - GraphQL Subscriptions
 - Chakra UI
-- Gatsby
+- Next.js
 - Express
 - PostgreSQL
-- Heroku
+- Redis
 
 ## Acknowledgments
 
