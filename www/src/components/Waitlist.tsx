@@ -207,7 +207,7 @@ export function Waitlist({ user }: WaitlistProps) {
         </Stack>
       ) : (
         <Box m="auto">
-          <Img mb="4" sx={{ h: 200 }} src={auston.src} />
+          <Img mb="4" h={200} src={auston.src} />
           <Heading textAlign="center" fontSize="2xl">
             Your list is clear
           </Heading>

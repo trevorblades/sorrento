@@ -1,39 +1,67 @@
 import React from "react";
 import logo from "../assets/logo.svg";
-import { Box, Flex, Heading, Text } from "@chakra-ui/react";
+import { Box, Flex, Link, Stack, Text } from "@chakra-ui/react";
+
+const PADDING = [6, 10, 20];
+const SPACING = [4, 6, 8];
 
 export default function HomePage() {
   return (
     <>
-      <Flex
-        direction="column"
-        justify="flex-end"
-        color="white"
-        bg="red.500"
-        px="20"
+      <Box
+        fontSize={["3xl", "4xl", "5xl"]}
+        fontWeight="bold"
+        lineHeight="short"
       >
-        <Box mt="200px" mb="16" maxW="599px" as="img" src={logo.src} />
-        <Heading fontSize="5xl" mb="8">
-          2417 E Hastings St, Vancouver
-        </Heading>
-        <Heading fontSize="5xl">
-          Monday: 10 AM - 5 PM
-          <br />
-          Tuesday - Saturday: 8 AM - 6 PM
-        </Heading>
-      </Flex>
-      <Box px="20" mb="120px">
-        <Heading fontSize="5xl" mb="8">
-          Sunday: 10 AM - 3 PM
-        </Heading>
-        <Heading fontSize="5xl">
-          Join the waitlist
-          <br />
-          Text your name to (604) 330-8137
-        </Heading>
+        <Flex
+          direction="column"
+          justify="flex-end"
+          color="white"
+          bg="red.500"
+          px={PADDING}
+        >
+          <Box
+            mt={[20, 120, 200]}
+            mb={{
+              base: 12,
+              md: 16,
+            }}
+            maxW="599px"
+            as="img"
+            src={logo.src}
+          />
+          <Stack spacing={SPACING}>
+            <div>2417 E Hastings St, Vancouver</div>
+            <div>
+              Monday: 10 AM - 5 PM
+              <br />
+              Tuesday - Saturday: 8 AM - 6 PM
+            </div>
+          </Stack>
+        </Flex>
+        <Stack spacing={SPACING} px={PADDING} mb={[10, 20, 120]}>
+          <div>Sunday: 10 AM - 3 PM</div>
+          <div>
+            Join the waitlist
+            <br />
+            Text your name to{" "}
+            <Link href="tel:+16043308137">(604) 330-8137</Link>
+          </div>
+          <div>
+            Contact us:{" "}
+            <Link href="mailto:sorrentobarbers@gmail.com">
+              sorrentobarbers@gmail
+            </Link>
+          </div>
+        </Stack>
       </Box>
-      <Box p="20" textAlign="center">
-        <Text fontSize="2xl">
+      <Box p={PADDING} textAlign="center">
+        <Text
+          fontSize={{
+            base: "xl",
+            md: "2xl",
+          }}
+        >
           &copy; {new Date().getFullYear()} Sorrento Barbers
         </Text>
       </Box>
