@@ -2,7 +2,7 @@
   "scripts": {
     "gql": "graphql-codegen --config codegen.yml",
     "start": "node -r dotenv/config --watch --loader ts-node/esm --experimental-specifier-resolution node src",
-    "build": "tsc"
+    "build": "yarn gql & tsc"
   },
   "type": "module",
   "devDependencies": {
