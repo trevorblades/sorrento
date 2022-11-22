@@ -4,7 +4,7 @@ import {
   CUSTOMER_ADDED,
   CUSTOMER_REMOVED,
   CUSTOMER_UPDATED,
-} from "./subscriptions";
+} from "./subscriptions.js";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
 import { Barber, Customer, Message } from "./db";
 import { DateTimeResolver } from "graphql-scalars";
