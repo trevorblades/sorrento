@@ -193,6 +193,7 @@ const wsServer = new WebSocketServer({
 const serverCleanup = useServer({ schema }, wsServer);
 
 const server = new ApolloServer<ContextType>({
+  introspection: true,
   schema: applyMiddleware(schema, permissions),
   plugins: [
     ApolloServerPluginDrainHttpServer({ httpServer }),
