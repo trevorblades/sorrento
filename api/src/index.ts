@@ -41,6 +41,8 @@ const AVERAGE_HANDLE_TIME = 40;
 const ACTIVE_AGENTS = 3;
 const MAX_QUEUE_SIZE = 10;
 
+console.log("redis url", process.env.REDIS_URL);
+
 const redisClient = createClient({
   url: process.env.REDIS_URL,
 });
@@ -337,7 +339,7 @@ app.post("/sms", async (req, res) => {
   res.end(messagingResponse.toString());
 });
 
-await redisClient.connect();
+// await redisClient.connect();
 await sequelize.sync();
 
 await new Promise<void>((resolve) =>
