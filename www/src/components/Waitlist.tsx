@@ -37,7 +37,6 @@ import {
 import { FiArrowRight, FiCheckCircle } from "react-icons/fi";
 import { RemoveCustomer } from "./RemoveCustomer";
 import { ServeCustomer } from "./ServeCustomer";
-import { Subscriptions } from "./Subscriptions";
 import { Timer } from "./Timer";
 import { ToggleColorMode } from "./ToggleColorMode";
 
