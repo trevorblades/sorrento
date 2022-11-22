@@ -212,7 +212,12 @@ await server.start();
 
 app.use(
   "/graphql",
-  cors<cors.CorsRequest>(),
+  cors<cors.CorsRequest>({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? ["https://sorrentobarbers.com", "https://sorrento.vercel.app"]
+        : "*",
+  }),
   bodyParser.json(),
   expressMiddleware(server, {
     context: async ({ req }) => {
