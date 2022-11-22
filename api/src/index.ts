@@ -45,6 +45,7 @@ const redisClient = new Redis(process.env.REDIS_URL!);
 
 const pubsub = new RedisPubSub({
   publisher: redisClient,
+  subscriber: redisClient,
 });
 
 const twilioClient = twilio(
@@ -337,7 +338,6 @@ app.post("/sms", async (req, res) => {
   res.end(messagingResponse.toString());
 });
 
-await redisClient.connect();
 await sequelize.sync();
 
 await new Promise<void>((resolve) =>
