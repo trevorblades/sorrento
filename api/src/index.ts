@@ -268,7 +268,7 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
 
       if (!customer) {
         messagingResponse.message("You are not on the list.");
-        return;
+        break;
       }
 
       await customer.destroy();
@@ -286,7 +286,7 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
           "We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
         );
 
-        return;
+        break;
       }
 
       // otherwise, add the customer to the list
@@ -307,7 +307,7 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
         pubsub.publish(CUSTOMER_UPDATED, { customerUpdated: customer });
 
         // no need to send a message back to the customer
-        return;
+        break;
       }
 
       const peopleAhead = await Customer.count({
@@ -321,7 +321,7 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
         messagingResponse.message(
           "The list is currently full. Please try again later."
         );
-        return;
+        break;
       }
 
       /**
