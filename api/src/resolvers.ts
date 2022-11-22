@@ -6,12 +6,12 @@ import {
   CUSTOMER_UPDATED,
 } from "./subscriptions.js";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
-import { Barber, Customer, Message } from "./db";
+import { Barber, Customer, Message } from "./db.js";
 import { DateTimeResolver } from "graphql-scalars";
 import { GraphQLError } from "graphql";
 import { Redis } from "ioredis";
 import { RedisPubSub } from "graphql-redis-subscriptions";
-import { Resolvers } from "./generated/graphql";
+import { Resolvers } from "./generated/graphql.js";
 import { default as bcrypt } from "bcryptjs";
 import { default as jwt } from "jsonwebtoken";
 import { parsePhoneNumber } from "awesome-phonenumber";
