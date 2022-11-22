@@ -41,7 +41,9 @@ const AVERAGE_HANDLE_TIME = 40;
 const ACTIVE_AGENTS = 3;
 const MAX_QUEUE_SIZE = 10;
 
-const redisClient = createClient();
+const redisClient = createClient({
+  url: process.env.REDIS_URL,
+});
 
 const pubsub = new RedisPubSub();
 
