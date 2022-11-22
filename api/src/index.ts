@@ -1,3 +1,4 @@
+import Redis from "ioredis";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
@@ -15,7 +16,6 @@ import { Resolvers } from "./generated/graphql.js";
 import { WebSocketServer } from "ws";
 import { applyMiddleware } from "graphql-middleware";
 import { default as bcrypt } from "bcryptjs";
-import { createClient } from "redis";
 import { expressMiddleware } from "@apollo/server/express4";
 import { default as jwt } from "jsonwebtoken";
 import { makeExecutableSchema } from "@graphql-tools/schema";
@@ -41,13 +41,11 @@ const AVERAGE_HANDLE_TIME = 40;
 const ACTIVE_AGENTS = 3;
 const MAX_QUEUE_SIZE = 10;
 
-console.log("redis url", process.env.REDIS_URL);
+const redisClient = new Redis(process.env.REDIS_URL!);
 
-const redisClient = createClient({
-  url: process.env.REDIS_URL,
+const pubsub = new RedisPubSub({
+  publisher: redisClient,
 });
-
-const pubsub = new RedisPubSub();
 
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -339,7 +337,7 @@ app.post("/sms", async (req, res) => {
   res.end(messagingResponse.toString());
 });
 
-// await redisClient.connect();
+await redisClient.connect();
 await sequelize.sync();
 
 await new Promise<void>((resolve) =>
