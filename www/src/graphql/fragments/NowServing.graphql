@@ -1,0 +1,5 @@
+fragment NowServing on Customer {
+  id
+  name
+  phone
+}

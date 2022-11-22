@@ -1,0 +1,5 @@
+.env.local
+.next
+next-env.d.ts
+node_modules
+src/generated/graphql.tsx

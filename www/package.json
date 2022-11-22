@@ -1,0 +1,39 @@
+{
+  "scripts": {
+    "start": "next dev",
+    "build": "next build",
+    "serve": "next start",
+    "gql": "graphql-codegen --config codegen.yml"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.7.1",
+    "@chakra-ui/react": "^2.3.6",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "date-fns": "^2.29.3",
+    "framer-motion": "^7.6.2",
+    "graphql": "^16.6.0",
+    "graphql-ws": "^5.11.2",
+    "isomorphic-ws": "^5.0.0",
+    "next": "^13.0.0",
+    "next-seo": "^5.14.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.6.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "2.13.12",
+    "@graphql-codegen/typescript": "2.8.2",
+    "@graphql-codegen/typescript-operations": "2.5.7",
+    "@graphql-codegen/typescript-react-apollo": "3.3.6",
+    "@graphql-eslint/eslint-plugin": "^3.13.1",
+    "@trevorblades/eslint-plugin": "^1.2.3",
+    "@types/react": "18.0.24",
+    "eslint": "^8.26.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-yml": "^1.2.0",
+    "prettier": "2.7.1",
+    "typescript": "4.8.4"
+  }
+}

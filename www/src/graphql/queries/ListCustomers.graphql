@@ -1,0 +1,6 @@
+query ListCustomers {
+  isAccepting
+  customers(served: false) {
+    ...Customer
+  }
+}

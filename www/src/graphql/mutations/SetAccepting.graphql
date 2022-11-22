@@ -1,0 +1,3 @@
+mutation SetAccepting($accepting: Boolean!) {
+  setAccepting(accepting: $accepting)
+}

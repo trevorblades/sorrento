@@ -1,0 +1,8 @@
+subscription CustomerUpdated {
+  customerUpdated {
+    id
+    messages {
+      ...Message
+    }
+  }
+}
