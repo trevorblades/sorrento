@@ -178,6 +178,9 @@ const resolvers: Resolvers<ContextType> = {
     servedBy: (customer) => customer.$get("servedBy"),
     messages: (customer) => customer.$get("messages"),
   },
+  Message: {
+    sentAt: (message) => message.createdAt,
+  },
 };
 
 const schema = makeExecutableSchema({
@@ -252,31 +255,39 @@ app.use(
 app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
   const messagingResponse = new twilio.twiml.MessagingResponse();
 
-  // if the message contains the keyword, remove the customer
-  if (req.body.Body.trim().toLowerCase() === KEYWORD.toLowerCase()) {
-    const customer = await Customer.findOne({
-      where: {
-        servedAt: null,
-        phone: req.body.From,
-      },
-    });
+  switch (req.body.Body.trim().toLowerCase()) {
+    // if the message contains the keyword, remove the customer
+    case KEYWORD.toLowerCase(): {
+      const customer = await Customer.findOne({
+        where: {
+          servedAt: null,
+          phone: req.body.From,
+        },
+      });
 
-    if (customer) {
+      if (!customer) {
+        messagingResponse.message("You are not on the list.");
+        return;
+      }
+
       await customer.destroy();
       pubsub.publish(CUSTOMER_REMOVED, { customerRemoved: customer });
       messagingResponse.message("You have been removed from the list.");
-    } else {
-      messagingResponse.message("You are not on the list.");
+
+      break;
     }
-  } else {
-    const isAccepting = await redisClient.get(IS_ACCEPTING_KEY);
-    // otherwise, check to see if the barber is accepting customers
-    if (isAccepting !== "true") {
-      // if not, send a message saying so
-      messagingResponse.message(
-        "We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
-      );
-    } else {
+    default: {
+      const isAccepting = await redisClient.get(IS_ACCEPTING_KEY);
+      // otherwise, check to see if the barber is accepting customers
+      if (isAccepting !== "true") {
+        // if not, send a message saying so
+        messagingResponse.message(
+          "We have stopped accepting customers for today. Please visit https://sorrentobarbers.com for our store hours."
+        );
+
+        return;
+      }
+
       // otherwise, add the customer to the list
       const customer = await Customer.findOne({
         where: {
@@ -292,8 +303,6 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
           customerId: customer.id,
         });
 
-        console.log("updated");
-
         pubsub.publish(CUSTOMER_UPDATED, { customerUpdated: customer });
 
         // no need to send a message back to the customer
@@ -307,42 +316,41 @@ app.post("/sms", urlencoded({ extended: false }), async (req, res) => {
       });
 
       // if there's any space in the queue, add the customer to the list
-      if (peopleAhead < MAX_QUEUE_SIZE) {
-        /**
-         * This value is calculated based on an EWT equation found here:
-         * https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
-         */
-        const estimatedWaitTime = Math.round(
-          (AVERAGE_HANDLE_TIME * peopleAhead) / ACTIVE_AGENTS
-        );
-
-        const welcomeMessage = [
-          "Hello! You are on the list.",
-          peopleAhead > 0
-            ? `There ${pluralize("is", peopleAhead)} ${pluralize(
-                "person",
-                peopleAhead,
-                true
-              )} ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
-            : "There is nobody ahead of you.",
-          `We will text you when you're up next. Reply "${KEYWORD}" at any time to remove yourself from the list. This is an automated response, so we can not reply to your questions.`,
-        ];
-
-        messagingResponse.message(welcomeMessage.join(" "));
-
-        const customer = await Customer.create({
-          name: req.body.Body,
-          phone: req.body.From,
-        });
-
-        console.log("added");
-
-        pubsub.publish(CUSTOMER_ADDED, { customerAdded: customer });
-      } else {
+      if (peopleAhead >= MAX_QUEUE_SIZE) {
         messagingResponse.message(
           "The list is currently full. Please try again later."
         );
+        return;
       }
+
+      /**
+       * This value is calculated based on an EWT equation found here:
+       * https://developer.mypurecloud.com/api/rest/v2/routing/estimatedwaittime.html#methods_of_calculating_ewt
+       */
+      const estimatedWaitTime = Math.round(
+        (AVERAGE_HANDLE_TIME * peopleAhead) / ACTIVE_AGENTS
+      );
+
+      const welcomeMessage = [
+        "Hello! You are on the list.",
+        peopleAhead > 0
+          ? `There ${pluralize("is", peopleAhead)} ${pluralize(
+              "person",
+              peopleAhead,
+              true
+            )} ahead of you. The approximate wait time is ${estimatedWaitTime} minutes.`
+          : "There is nobody ahead of you.",
+        `We will text you when you're up next. Reply "${KEYWORD}" at any time to remove yourself from the list. This is an automated response, so we can not reply to your questions.`,
+      ];
+
+      messagingResponse.message(welcomeMessage.join(" "));
+
+      const customerAdded = await Customer.create({
+        name: req.body.Body,
+        phone: req.body.From,
+      });
+
+      pubsub.publish(CUSTOMER_ADDED, { customerAdded });
     }
   }
 
