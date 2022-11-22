@@ -3,6 +3,7 @@ import {
   Button,
   FormControl,
   FormLabel,
+  Heading,
   Input,
   Stack,
   useToast,
@@ -45,7 +46,10 @@ export function LoginForm() {
         });
       }}
     >
-      <Stack spacing="6" mb="10">
+      <Heading mb="6" textAlign="center">
+        eSorrento
+      </Heading>
+      <Stack spacing="4">
         <FormControl isRequired>
           <FormLabel>Username</FormLabel>
           <Input name="username" />
@@ -54,10 +58,10 @@ export function LoginForm() {
           <FormLabel>Password</FormLabel>
           <Input type="password" name="password" />
         </FormControl>
+        <Button type="submit" isLoading={loading}>
+          Log in
+        </Button>
       </Stack>
-      <Button type="submit" isLoading={loading}>
-        Log in
-      </Button>
     </form>
   );
 }
