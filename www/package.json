@@ -1,6 +1,7 @@
 {
   "scripts": {
     "start": "next dev",
+    "prebuild": "yarn gql",
     "build": "next build",
     "serve": "next start",
     "gql": "graphql-codegen --config codegen.yml"
