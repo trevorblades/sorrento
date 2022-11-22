@@ -20,7 +20,8 @@
     "next-seo": "^5.14.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^4.6.0"
+    "react-icons": "^4.6.0",
+    "ws": "^8.11.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "2.13.12",
