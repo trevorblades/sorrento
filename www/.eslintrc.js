@@ -4,6 +4,7 @@ module.exports = {
     "plugin:@trevorblades/typescript",
     "plugin:yml/recommended",
     "plugin:prettier/recommended",
+    "plugin:@next/next/recommended",
   ],
   overrides: [
     {
