@@ -4,7 +4,7 @@
     "prebuild": "yarn gql",
     "build": "next build",
     "serve": "next start",
-    "gql": "graphql-codegen --config codegen.yml"
+    "gql": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
     "@apollo/client": "^3.7.1",
