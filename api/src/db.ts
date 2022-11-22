@@ -1,8 +1,6 @@
 import {
-  BelongsTo,
   Column,
   ForeignKey,
-  HasMany,
   Model,
   Sequelize,
   Table,
@@ -18,9 +16,6 @@ export class Barber extends Model {
 
   @Column
   password: string;
-
-  @HasMany(() => Customer)
-  customers: Customer[];
 }
 
 @Table
@@ -40,12 +35,6 @@ export class Customer extends Model {
   @ForeignKey(() => Barber)
   @Column
   barberId: number;
-
-  @BelongsTo(() => Barber)
-  servedBy: Barber;
-
-  @HasMany(() => Message)
-  messages: Message[];
 }
 
 @Table
@@ -56,9 +45,6 @@ export class Message extends Model {
   @ForeignKey(() => Customer)
   @Column
   customerId: number;
-
-  @BelongsTo(() => Customer)
-  customer: Customer;
 }
 
 export const sequelize = new Sequelize(process.env.DATABASE_URL!, {

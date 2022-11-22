@@ -175,7 +175,8 @@ const resolvers: Resolvers<ContextType> = {
       return number?.national || customer.phone;
     },
     waitingSince: (customer) => customer.createdAt,
-    servedBy: (customer) => customer.$get("servedBy"),
+    servedBy: (customer) =>
+      Barber.findOne({ where: { id: customer.barberId } }),
     messages: (customer) =>
       Message.findAll({ where: { customerId: customer.id } }),
   },
