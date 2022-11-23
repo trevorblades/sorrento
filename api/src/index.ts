@@ -60,7 +60,6 @@ const serverCleanup = useServer(
 );
 
 const server = new ApolloServer<ContextType>({
-  introspection: true,
   schema: applyMiddleware(schema, permissions),
   plugins: [
     ApolloServerPluginDrainHttpServer({ httpServer }),
