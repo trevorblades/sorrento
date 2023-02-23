@@ -46,7 +46,7 @@
     "pg": "^8.8.0",
     "pluralize": "^8.0.0",
     "reflect-metadata": "^0.1.13",
-    "sequelize": "^6.25.6",
+    "sequelize": "^6.28.2",
     "sequelize-typescript": "^2.1.5",
     "twilio": "^3.83.3",
     "ws": "^8.11.0"
