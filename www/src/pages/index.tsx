@@ -33,9 +33,9 @@ export default function HomePage() {
           <Stack spacing={SPACING}>
             <div>2417 E Hastings St, Vancouver</div>
             <div>
-              Monday: 10 AM - 5 PM
+              Monday: 10 AM - 5:30 PM
               <br />
-              Tuesday - Saturday: 8 AM - 6 PM
+              Tuesday - Saturday: 8 AM - 5:30 PM
             </div>
           </Stack>
         </Flex>
