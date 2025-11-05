@@ -49,8 +49,15 @@ export default function HomePage() {
           </div>
           <div>
             Contact us:{" "}
-            <Link href="mailto:sorrentobarbers@gmail.com">
-              sorrentobarbers@gmail
+            <Link href="mailto:fredlybarbering@gmail.com">
+              fredlybarbering@gmail.com
+            </Link>
+          </div>
+          <div>
+            Stay up to date with Sorrento Barbers! For information about holiday
+            hours or closures, check out our Instagram here:{" "}
+            <Link href="https://www.instagram.com/sorrentobarbers/">
+              @sorrentobarbers
             </Link>
           </div>
         </Stack>
