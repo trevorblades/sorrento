@@ -1,5 +1,5 @@
 import React, { ComponentProps, useEffect } from "react";
-import auston from "../assets/auston.png";
+import georgie from "../assets/georgie.png";
 import {
   AcceptingChangedDocument,
   AcceptingChangedSubscription,
@@ -207,7 +207,7 @@ export function Waitlist({ user }: WaitlistProps) {
         </Stack>
       ) : (
         <Box m="auto">
-          <Img mb="4" h={200} src={auston.src} />
+          <Img mb="4" h={200} src={georgie.src} />
           <Heading textAlign="center" fontSize="2xl">
             Your list is clear
           </Heading>
