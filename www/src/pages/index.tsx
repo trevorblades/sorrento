@@ -50,7 +50,7 @@ export default function HomePage() {
           <div>
             Contact us:{" "}
             <Link href="mailto:sorrentobarbers@gmail.com">
-              sorrentobarbers@gmail
+              fredlybarbering@gmail.com
             </Link>
           </div>
         </Stack>
