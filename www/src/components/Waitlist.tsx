@@ -34,7 +34,7 @@ import {
   Text,
   chakra,
 } from "@chakra-ui/react";
-import { FiArrowRight, FiCheckCircle } from "react-icons/fi";
+import { FiCheckCircle } from "react-icons/fi";
 import { RemoveCustomer } from "./RemoveCustomer";
 import { ServeCustomer } from "./ServeCustomer";
 import { Timer } from "./Timer";
@@ -170,40 +170,46 @@ export function Waitlist({ user }: WaitlistProps) {
           w="full"
           px={{ lg: 6 }}
         >
-          {customers.map((customer) => (
-            <ListItem
-              key={customer.id}
-              py={[3, 4, 5]}
-              px={{
-                base: 4,
-                sm: 5,
-                lg: 0,
-              }}
-            >
-              <Box fontWeight="bold" fontSize="xl">
-                {customer.phone}
-              </Box>
-              <Text>{customer.name}</Text>
-              {customer.messages.map((message) => (
-                <Text key={message.id}>{message.text}</Text>
-              ))}
-              <HStack spacing="2" mt="3">
-                <ServeCustomer
-                  borderRadius="full"
-                  leftIcon={<FiCheckCircle />}
-                  size="sm"
-                  customer={customer}
-                  user={user}
-                >
-                  Serve
-                </ServeCustomer>
-                <RemoveCustomer customer={customer} />
-                <Text fontSize="sm" color="gray.500">
-                  <Timer date={new Date(customer.waitingSince)} />
-                </Text>
-              </HStack>
-            </ListItem>
-          ))}
+          {customers
+            .toSorted(
+              (a, b) =>
+                new Date(b.waitingSince).getTime() -
+                new Date(a.waitingSince).getTime()
+            )
+            .map((customer) => (
+              <ListItem
+                key={customer.id}
+                py={[3, 4, 5]}
+                px={{
+                  base: 4,
+                  sm: 5,
+                  lg: 0,
+                }}
+              >
+                <Box fontWeight="bold" fontSize="xl">
+                  {customer.phone}
+                </Box>
+                <Text>{customer.name}</Text>
+                {customer.messages.map((message) => (
+                  <Text key={message.id}>{message.text}</Text>
+                ))}
+                <HStack spacing="2" mt="3">
+                  <ServeCustomer
+                    borderRadius="full"
+                    leftIcon={<FiCheckCircle />}
+                    size="sm"
+                    customer={customer}
+                    user={user}
+                  >
+                    Serve
+                  </ServeCustomer>
+                  <RemoveCustomer customer={customer} />
+                  <Text fontSize="sm" color="gray.500">
+                    <Timer date={new Date(customer.waitingSince)} />
+                  </Text>
+                </HStack>
+              </ListItem>
+            ))}
         </Stack>
       ) : (
         <Box m="auto">
@@ -225,28 +231,6 @@ export function Waitlist({ user }: WaitlistProps) {
               </Text>
             </Box>
           )}
-          <ServeCustomer
-            size="lg"
-            borderRadius="full"
-            colorScheme="blue"
-            ml="auto"
-            rightIcon={<FiArrowRight />}
-            flexShrink="0"
-            customer={customers[0]}
-            user={user}
-          >
-            <span>
-              Next{" "}
-              <chakra.span
-                display={{
-                  base: "none",
-                  md: "inline",
-                }}
-              >
-                customer
-              </chakra.span>
-            </span>
-          </ServeCustomer>
         </Flex>
       </Box>
     </Flex>
