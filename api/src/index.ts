@@ -81,7 +81,11 @@ app.use(
   cors<cors.CorsRequest>({
     origin:
       process.env.NODE_ENV === "production"
-        ? ["https://sorrentobarbers.com", "https://sorrento.vercel.app"]
+        ? [
+            "https://sorrentobarbers.com",
+            "https://list.sorrentobarbers.com",
+            "https://sorrento.vercel.app",
+          ]
         : "*",
   })
 );
