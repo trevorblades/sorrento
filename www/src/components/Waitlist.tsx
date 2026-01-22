@@ -171,7 +171,8 @@ export function Waitlist({ user }: WaitlistProps) {
           px={{ lg: 6 }}
         >
           {customers
-            .toSorted(
+            .slice()
+            .sort(
               (a, b) =>
                 new Date(b.waitingSince).getTime() -
                 new Date(a.waitingSince).getTime()
