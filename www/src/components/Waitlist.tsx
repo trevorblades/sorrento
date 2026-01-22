@@ -174,8 +174,8 @@ export function Waitlist({ user }: WaitlistProps) {
             .slice()
             .sort(
               (a, b) =>
-                new Date(b.waitingSince).getTime() -
-                new Date(a.waitingSince).getTime()
+                new Date(a.waitingSince).getTime() -
+                new Date(b.waitingSince).getTime()
             )
             .map((customer) => (
               <ListItem
